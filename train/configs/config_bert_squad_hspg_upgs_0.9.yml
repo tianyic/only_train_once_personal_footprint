@@ -51,7 +51,7 @@ optimizer:
     epsilon: [0.0, 0.0, 0.0, 0.0, 0.0]
     adapt_epsilon_freq: !!int 200 # per steps
     adapt_epsilon: [false, false, false, true, false]
-    upper_group_sparsity: [1.0, 1.0, 1.0, 0.5, 1.0]
+    upper_group_sparsity: [1.0, 1.0, 1.0, 0.9, 1.0]
     weight_decay: 0.0001
 
 lr_scheduler:
