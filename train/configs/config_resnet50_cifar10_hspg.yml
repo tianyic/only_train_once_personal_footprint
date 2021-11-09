@@ -1,0 +1,26 @@
+backend: resnet50_cifar10
+dataset_name: cifar10
+checkpoint_dir: checkpoints/resnet50_cifar_training
+seed: !!int 2
+
+do_train: true
+do_eval: true
+
+# Training option
+train:
+    batch_size: 64
+    max_epoch: 300
+
+
+
+optimizer:
+    name: hspg
+    init_stage: sgd
+    init_lr: 0.1
+    n_p: 75
+    lambda: !!float 1e-3
+    decay_mode: multi_step
+    decays: [75, 150, 225]
+    momentum: 0.0
+    epsilon: [0.0, 0.0, 0.0, 0.0, 0.0]
+    upper_group_sparsity: [1.0, 1.0, 1.0, 1.0, 1.0]
