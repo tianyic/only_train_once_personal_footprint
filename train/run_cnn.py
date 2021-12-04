@@ -17,7 +17,7 @@ sys.path.append(parentdir)
 from backend import Model
 from data.datasets import Dataset
 from utils.utils import compute_func_values, check_accuracy
-from optimizer import HSPG, ProxSG
+from optimizer import HSPG
 
 
 def adjust_learning_rate(optimizer, epoch, decays):
@@ -92,8 +92,6 @@ def train(opt, trainloader, testloader, model):
             X = X.to(opt['device'])
             y = y.to(opt['device'])
 
-            print(X.shape, y.shape)
-            exit()
             y_pred = model.forward(X)
             f = criterion(y_pred, y)
             optimizer.zero_grad()
