@@ -1,9 +1,36 @@
 # Only Train Once: A One-Shot Neural Network Training And Pruning Framework
 
-This repository is the implementation of Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework, appearing in NeurIPS 2021.
+This repository is the Pytorch implementation of [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html), appearing in NeurIPS 2021.
 
-[[paper](https://arxiv.org/abs/2107.07467)]
+<img width="1105" alt="overview" src="https://user-images.githubusercontent.com/8930611/144922447-843b6a40-4fa3-4af7-85d0-62cc43d1b4ca.png">
 
+## Reference
+
+If you find the repo useful, please kindly cite our paper:
+
+```
+@inproceedings{chen2021only,
+  title={Only Train Once: A One-Shot Neural Network Training And Pruning Framework},
+  author={Chen, Tianyi and Ji, Bo and Tianyu, DING and Fang, Biyi and Wang, Guanyi and Zhu, Zhihui and Liang, Luming and Shi, Yixin and Yi, Sheng and Tu, Xiao},
+  booktitle={Thirty-Fifth Conference on Neural Information Processing Systems},
+  year={2021}
+}
+```
+
+## Zero-Invariant Group (ZIG)
+
+Zero-invariant groups serve as one of two fundamental components to OTO. A ZIG has an attractive property is that if equaling to zero, then the corresponding structure contributes null to the model output, thereby can be directly removed. ZIG is generic to various DNN architectures, as follows.
+
+<img width="995" alt="zig_conv_bn" src="https://user-images.githubusercontent.com/8930611/144923778-3a31718f-5f0e-42cc-a0a9-357aae463700.png">
+<img width="959" alt="zig_residual" src="https://user-images.githubusercontent.com/8930611/144923631-b1f7a4f5-6bd5-4003-be44-2275b9cfa69d.png">
+<img width="836" alt="zig_fc_multi_head" src="https://user-images.githubusercontent.com/8930611/144923967-3458d322-8998-469d-874b-1d59475c0490.png">
+
+
+## Half-Space Projected Gradient Descent Method (HSPG)
+
+Half-Space Projected Gradient Descent Method utilizes a novel Half-Space projection operator to yield group sparsity, which is more effective than the standard proximal method because of a larger projection region. 
+
+<img width="1025" alt="hspg" src="https://user-images.githubusercontent.com/8930611/144924639-1e0b6f36-92bf-4f09-80a8-9e5b3fb9b1d4.png">
 
 ## Pretrained full group sparse models and slimmer pruned models
 
@@ -26,12 +53,6 @@ For examples,
 
 ```
 python prune/prune_cnn.py --backend vgg16 --dataset_name cifar10 --checkpoint checkpoints/vgg16_cifar10_group_sparse.pt
-
-python prune/prune_cnn.py --backend vgg16_bn --dataset_name cifar10 --checkpoint checkpoints/vgg16_bn_cifar10_group_sparse.pt
-
-python prune/prune_cnn.py --backend resnet50 --dataset_name cifar10 --checkpoint checkpoints/resnet50_cifar10_group_sparse.pt
-
-python prune/prune_cnn.py --backend resnet50 --dataset_name imagenet --checkpoint checkpoints/resnet50_imagenet_group_sparse.pt
 ```
 
 
@@ -45,14 +66,6 @@ For example,
 
 ```
 python prune/prune_bert_squad.py --checkpoint_dir checkpoints/bert_squad_oto_params_40_exact_71_f1_81 --eval_data data/squad/dev-v1.1.json
-
-python prune/prune_bert_squad.py --checkpoint_dir checkpoints/bert_squad_oto_params_53_exact_71_f1_82 --eval_data data/squad/dev-v1.1.json
-
-python prune/prune_bert_squad.py --checkpoint_dir checkpoints/bert_squad_oto_params_67_exact_72_f1_82 --eval_data data/squad/dev-v1.1.json
-
-python prune/prune_bert_squad.py --checkpoint_dir checkpoints/bert_squad_oto_params_76_exact_72_f1_82 --eval_data data/squad/dev-v1.1.json
-
-python prune/prune_bert_squad.py --checkpoint_dir checkpoints/bert_squad_oto_params_91_exact_75_f1_84 --eval_data data/squad/dev-v1.1.json
 ```
 
 The above pruning script generates corresponding pruned models in checkpoints dir, which return the exact same output as the full group sparse models.
