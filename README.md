@@ -28,7 +28,7 @@ Zero-invariant groups serve as one of two fundamental components to OTO. A ZIG h
 
 ## Half-Space Projected Gradient Descent Method (HSPG)
 
-Half-Space Projected Gradient Descent Method utilizes a novel Half-Space projection operator to yield group sparsity, which is more effective than the standard proximal method because of a larger projection region. 
+Half-Space Projected Gradient Descent Method serve as another fundamental component to OTO to promote more ZIGs as zero. Hence, redundant structures can be pruned without retraining. HSPG utilizes a novel Half-Space projection operator to yield group sparsity, which is more effective than the standard proximal method because of a larger projection region. 
 
 <img width="1025" alt="hspg" src="https://user-images.githubusercontent.com/8930611/144924639-1e0b6f36-92bf-4f09-80a8-9e5b3fb9b1d4.png">
 
