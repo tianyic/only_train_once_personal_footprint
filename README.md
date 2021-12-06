@@ -19,7 +19,7 @@ If you find the repo useful, please kindly cite our paper:
 
 ## Zero-Invariant Group (ZIG)
 
-Zero-invariant groups serve as one of two fundamental components to OTO. A ZIG has an attractive property is that if equaling to zero, then the corresponding structure contributes null to the model output, thereby can be directly removed. ZIG is generic to various DNN architectures, as follows.
+Zero-invariant groups serve as one of two fundamental components to OTO. A ZIG has an attractive property is that if equaling to zero, then the corresponding structure contributes null to the model output, thereby can be directly removed. ZIG is generic to various DNN architectures, such as Conv-Layer, Residual Block, Fully-Connected Layer and Multi-Head Attention Layer as follows.
 
 <img width="995" alt="zig_conv_bn" src="https://user-images.githubusercontent.com/8930611/144923778-3a31718f-5f0e-42cc-a0a9-357aae463700.png">
 <img width="959" alt="zig_residual" src="https://user-images.githubusercontent.com/8930611/144923631-b1f7a4f5-6bd5-4003-be44-2275b9cfa69d.png">
