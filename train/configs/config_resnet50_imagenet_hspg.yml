@@ -1,0 +1,26 @@
+backend: resnet50_imagenet
+dataset_name: imagenet
+checkpoint_dir: checkpoints/resnet50_imagenet_training
+seed: !!int 2
+
+do_train: true
+do_eval: true
+
+# Training option
+train:
+    batch_size: 256
+    max_epoch: 120
+    display_freq: !!int 200
+
+optimizer:
+    name: hspg
+    init_stage: sgd
+    init_lr: 0.1
+    n_p: 30
+    lambda: !!float 1e-3
+    decay_mode: multi_step
+    decays: [30, 60, 90]
+    decays_lambda: [35, 40, 45]
+    momentum: 0.0
+    epsilon: [0.0, 0.0, 0.0, 0.0, 0.0]
+    upper_group_sparsity: [1.0, 1.0, 1.0, 1.0, 1.0]
