@@ -1,4 +1,4 @@
-# Only Train Once: A One-Shot Neural Network Training And Pruning Framework
+# Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework
 
 ## Note: OTO v1 will be deprecated soon. A brand new OTO v2 will be released. 
 
