@@ -1,6 +1,6 @@
 # Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework
 
-## Note: OTO v1 will be deprecated soon. A brand new OTO v2 will be released. 
+## Note: OTO v1 will be deprecated soon. A brand new OTO v2 with automatic ZIG partition and automatic pruning for arbitrary DNNs will be released. 
 
 This repository is the Pytorch implementation of [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html), appearing in NeurIPS 2021.
 
