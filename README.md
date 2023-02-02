@@ -1,6 +1,9 @@
 # Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework
 
-This repository is the Pytorch implementation of [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html), appearing in NeurIPS 2021.
+## Remark here that OTOv2 is coming, which is an automatic, generic, and user-friendly DNN training and compression framework.
+
+This repository is the Pytorch implementation of OTOv1 [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html), appearing in NeurIPS 2021.
+
 
 <img width="1105" alt="overview" src="https://user-images.githubusercontent.com/8930611/144922447-843b6a40-4fa3-4af7-85d0-62cc43d1b4ca.png">
 
