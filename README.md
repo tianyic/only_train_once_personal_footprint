@@ -10,7 +10,7 @@ Our recent work OTOv2 has been accepted by ICLR 2023 [OTOv2: Automatic, Generic,
 
 ## Reference
 
-If you find the repo useful, please kindly cite our paper:
+If you find the repo useful, please kindly cite our papers:
 
 ```
 @inproceedings{chen2023otov2,
