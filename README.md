@@ -13,18 +13,18 @@ Our recent work OTOv2 has been accepted by ICLR 2023 [OTOv2: Automatic, Generic,
 If you find the repo useful, please kindly cite our paper:
 
 ```
-@inproceedings{chen2021only,
-  title={Only Train Once: A One-Shot Neural Network Training And Pruning Framework},
-  author={Chen, Tianyi and Ji, Bo and Tianyu, DING and Fang, Biyi and Wang, Guanyi and Zhu, Zhihui and Liang, Luming and Shi, Yixin and Yi, Sheng and Tu, Xiao},
-  booktitle={Thirty-Fifth Conference on Neural Information Processing Systems},
-  year={2021}
-}
-
 @inproceedings{chen2023otov2,
   title={OTOv2: Automatic, Generic, User-Friendly},
   author={Chen, Tianyi and Liang, Luming and Tianyu, DING and Zhu, Zhihui and Zharkov, Ilya},
   booktitle={International Conference on Learning Representations},
   year={2023}
+}
+
+@inproceedings{chen2021only,
+  title={Only Train Once: A One-Shot Neural Network Training And Pruning Framework},
+  author={Chen, Tianyi and Ji, Bo and Tianyu, DING and Fang, Biyi and Wang, Guanyi and Zhu, Zhihui and Liang, Luming and Shi, Yixin and Yi, Sheng and Tu, Xiao},
+  booktitle={Thirty-Fifth Conference on Neural Information Processing Systems},
+  year={2021}
 }
 ```
 
