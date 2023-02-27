@@ -19,6 +19,13 @@ If you find the repo useful, please kindly cite our paper:
   booktitle={Thirty-Fifth Conference on Neural Information Processing Systems},
   year={2021}
 }
+
+@inproceedings{chen2023otov2,
+  title={OTOv2: Automatic, Generic, User-Friendly},
+  author={Chen, Tianyi and Liang, Luming and Tianyu, DING and Zhu, Zhihui and Zharkov, Ilya},
+  booktitle={International Conference on Learning Representations},
+  year={2023}
+}
 ```
 
 ## Zero-Invariant Group (ZIG)
