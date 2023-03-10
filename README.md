@@ -1,6 +1,7 @@
 # Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework
 
-## Remark here that OTOv2 is coming, which is an automatic, generic, and user-friendly DNN training and compression framework.
+## Remark here that OTOv2 is coming soon, which is an automatic, generic, and user-friendly DNN training and compression framework.
+## We are working on documenting and writing up tutorials.
 
 This repository is the Pytorch implementation of OTOv1 [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html), appearing in NeurIPS 2021.
 
@@ -108,46 +109,6 @@ For example,
 ```train
 python train/run_bert_squad.py --opt train/configs/config_bert_squad_hspg_upgs_0.5.yml
 ```
-
-## Results
-
-Our pruned models achieve the following performance on :
-
-### [Pruned VGG16 on CIFAR10]
-
-|   FLOPs  | # of Params |  Top 1 Accuracy  |
-| -------- | ----------- | ---------------- |
-|   16.3%  |     2.5%    |      91.0%       |
-
-### [Pruned VGG16-BN on CIFAR10]
-
-|   FLOPs  | # of Params |  Top 1 Accuracy  |
-| -------- | ----------- | ---------------- |
-|   26.8%  |     5.5%    |      93.3%       |
-
-### [Pruned ResNet50 on CIFAR10]
-
-|   FLOPs  | # of Params |  Top 1 Accuracy  |
-| -------- | ----------- | ---------------- |
-|   12.8%  |     8.8%    |      94.4%       |
-
-
-### [Pruned ResNet50 on ImageNet]
-
-|   FLOPs  | # of Params |  Top 1 Accuracy  | Top 5 Accuracy |
-| -------- | ----------- | ---------------- | -------------- |
-|   34.5%  |    35.5%    |      74.7%       |      92.1%     |
-
-
-### [Pruned Berts on SQuAD]
-
-| # of Params |    Exact    |   F1-Score  |
-| ----------- | ----------- | ----------- |
-|    91.0%    |    75.0%    |    84.1%    |
-|    76.2%    |    72.3%    |    82.1%    |
-|    66.7%    |    71.9%    |    82.0%    |
-|    53.3%    |    71.4%    |    81.5%    |
-|    40.0%    |    70.9%    |    81.1%    |
 
 ## Contributing
 
