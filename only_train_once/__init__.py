@@ -27,15 +27,15 @@ class OTO:
     def partition_zigs(self):
         self._graph = automated_partition_zigs(self._graph)
     
-    def visualize_zigs(self, out_dir=None, view=True, vertical=False):
+    def visualize_zigs(self, out_dir=None, view=False, vertical=True):
         self._graph.build_dot(verbose=True, vertical=vertical).render(\
             os.path.join(out_dir if out_dir is not None else './', \
                 self._model.name if hasattr(self._model, 'name') else type(self._model).__name__ + '_zig.gv'), \
                 view=view)
 
-    def dhspg(self, lr=0.1, lmbda=0.0, lmbda_amplify=1.1, hat_lmbda_coeff=10, epsilon=0.0, weight_decay=0.0, first_momentum=0.0, second_momentum=0.0, \
-               variant='sgd', target_group_sparsity=0.5, tolerance_group_sparsity=0.05, partition_step=1e5, half_space_project_steps=2e4,\
-               warm_up_steps=None, dampening=0.0, group_divisible=1, fixed_zero_groups=True):
+    def dhspg(self, lr=0.1, lmbda=1e-3, lmbda_amplify=1.1, hat_lmbda_coeff=10, epsilon=0.0, weight_decay=0.0, first_momentum=0.0, second_momentum=0.0, \
+               variant='sgd', target_group_sparsity=0.5, tolerance_group_sparsity=0.05, partition_step=0, half_space_project_steps=0,\
+               warm_up_steps=0, dampening=0.0, group_divisible=1, fixed_zero_groups=True):
         self._optimizer = DHSPG(
             params=self._graph.params_groups(epsilon=epsilon),
             lr=lr,
@@ -85,4 +85,3 @@ class OTO:
             return num_params
         else:
             return sum([w.numel() for _, w in self._model.named_parameters()])
-

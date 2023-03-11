@@ -13,12 +13,12 @@ from assets.group_types import GROUP_TYPE
 
 class DHSPG(Optimizer):
 
-    def __init__(self, params, lr=required, lmbda=required, lmbda_amplify=1.1, hat_lmbda_coeff=10, epsilon=0.0, weight_decay=0.0, first_momentum=0.0, second_momentum=0.99, dampening=0.0, 
-                 variant='sgd', target_group_sparsity=0.5, tolerance_group_sparsity=0.05, partition_step=1e5, half_space_project_steps=2e5, warm_up_steps=None, group_divisible=1, fixed_zero_groups=True):
+    def __init__(self, params, lr=required, lmbda=1e-3, lmbda_amplify=1.1, hat_lmbda_coeff=10, epsilon=0.0, weight_decay=0.0, first_momentum=0.0, second_momentum=0.99, dampening=0.0, 
+                 variant='sgd', target_group_sparsity=0.5, tolerance_group_sparsity=0.05, partition_step=0, half_space_project_steps=0, warm_up_steps=0, group_divisible=1, fixed_zero_groups=True):
         if lr is not required and lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
 
-        if lmbda is not required and lmbda < 0.0:
+        if  lmbda < 0.0:
             raise ValueError("Invalid lambda: {}".format(lmbda))
 
         if weight_decay < 0.0:
@@ -39,7 +39,7 @@ class DHSPG(Optimizer):
         self.partition_step = partition_step
         self.partitoned = False
         self.half_space_project_steps = half_space_project_steps
-        self.warm_up_steps = self.half_space_project_steps // 2 if warm_up_steps is None else warm_up_steps
+        self.warm_up_steps = self.half_space_project_steps // 2 if warm_up_steps is 0 else warm_up_steps
         self.fixed_zero_groups = fixed_zero_groups
         
         self.safe_guard = 1e-8
@@ -283,7 +283,7 @@ class DHSPG(Optimizer):
         self.compute_grad_variant()
 
         # Partition groups into G_p and G_np
-        if self.param_groups[0]['num_steps'] % self.partition_step == 0 and not self.param_groups[0]['partitoned']:
+        if not self.param_groups[0]['partitoned'] and self.param_groups[0]['num_steps'] - 1 == self.partition_step:
             self.partition_groups()
 
         # Second pass to update variables

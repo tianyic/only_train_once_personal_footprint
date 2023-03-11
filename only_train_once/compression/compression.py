@@ -6,10 +6,12 @@ def automated_compression(oto_graph, model, dummy_input, compressed_model_path, 
     compressed_model_path = './' if compressed_model_path is None else compressed_model_path
     full_group_sparse_model_path = os.path.join(compressed_model_path, (model.name if hasattr(model, 'name') else type(model).__name__) + "_full_group_sparse.onnx" )
     compressed_model_path = os.path.join(compressed_model_path, (model.name if hasattr(model, 'name') else type(model).__name__) + "_compressed.onnx" )
+    device = next(model.parameters()).device
+
     if dynamic_axes[0]:
         torch.onnx.export(
             model, 
-            dummy_input, 
+            dummy_input.to(device), 
             full_group_sparse_model_path, 
             input_names=['input'],
             output_names=['output'],
@@ -18,8 +20,9 @@ def automated_compression(oto_graph, model, dummy_input, compressed_model_path, 
     else:
         torch.onnx.export(
             model, 
-            dummy_input, 
-            full_group_sparse_model_path)  
+            dummy_input.to(device), 
+            full_group_sparse_model_path
+        )  
 
     import onnx
     max_try_count = 10

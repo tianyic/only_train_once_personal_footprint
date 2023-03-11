@@ -463,10 +463,8 @@ class Graph():
                 auxiliary_cc_params_objs = [(name, self.params_grad[name]) if name in self.params_grad else (name, self.params_no_grad[name]) for name in auxiliary_cc.params]
                 for name, param in auxiliary_cc_params_objs:
                     if len(param.data.shape) == 1:
-                        # param_append = param.data[offset:offset + cc.num_groups,...].unsqueeze(1)
                         xs.append(param.data[offset:offset + cc.num_groups,...].unsqueeze(1))
                     else:
-                        # param_append = param.data[offset:offset + cc.num_groups,...].view(cc.num_groups, -1)
                         xs.append(param.data[offset:offset + cc.num_groups,...].view(cc.num_groups, -1))
             if len(xs) == 0:
                 continue            
