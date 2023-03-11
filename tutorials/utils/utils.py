@@ -2,102 +2,6 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-def is_conv_weights(shape):
-    return len(shape) == 4
-
-def is_linear_weights(shape, num_classes):
-    if len(shape) == 2 and shape[0] != num_classes:
-        return True
-    else:
-        return False
-
-def compute_sparsity(weights):
-    nnz = 0
-    nnz_tolerance = 0
-    n = 0
-    num_zero_kernels = 0
-    num_all_kernels = 0
-
-    for weight in weights:
-        cur_weight = weight.data.cpu().numpy()
-        if is_conv_weights(cur_weight.shape):
-            nnz += np.sum(cur_weight != 0)
-            nnz_tolerance += np.sum(np.abs(cur_weight) > 1e-6)
-            n += cur_weight.size
-            for k in range(cur_weight.shape[0]):
-                if np.sum(cur_weight[k,...]==0) == cur_weight[k,...].size:
-                    num_zero_kernels += 1
-            num_all_kernels += cur_weight.shape[0]
-
-    return 1.0 - float(nnz) / float(n+1e-6), 1.0 - float(nnz_tolerance) / float(n+1e-6), float(num_zero_kernels) / num_all_kernels
-
-def compute_sparsity_linear(weights, num_classes):
-    nnz = 0
-    nnz_tolerance = 0
-    n = 0
-    num_zero_kernels = 0
-    num_all_kernels = 0
-
-    for weight in weights:
-        cur_weight = weight.data.cpu().numpy()
-        if is_conv_weights(cur_weight.shape):
-            nnz += np.sum(cur_weight != 0)
-            nnz_tolerance += np.sum(np.abs(cur_weight) > 1e-6)
-            n += cur_weight.size
-            for k in range(cur_weight.shape[0]):
-                if np.sum(cur_weight[k,...]==0) == cur_weight[k,...].size:
-                    num_zero_kernels += 1
-            num_all_kernels += cur_weight.shape[0]
-
-        elif is_linear_weights(cur_weight.shape, num_classes):
-            nnz += np.sum(cur_weight != 0)
-            nnz_tolerance += np.sum(np.abs(cur_weight) > 1e-6)
-            n += cur_weight.size
-            for k in range(cur_weight.shape[0]):
-                if np.sum(cur_weight[k, ...]==0) == cur_weight[k,...].size:
-                    num_zero_kernels += 1
-            num_all_kernels += cur_weight.shape[-1]
-
-    return 1.0 - float(nnz) / float(n+1e-6), 1.0 - float(nnz_tolerance) / float(n+1e-6), float(num_zero_kernels) / num_all_kernels
-
-
-def compute_F(trainloader, model, weights, criterion, lmbda):
-    f = 0.0
-    device = next(model.parameters()).device
-    for index, (X, y) in enumerate(trainloader):
-        X = X.to(device)
-        y = y.to(device)
-        y_pred = model.forward(X)
-        f1 = criterion(y_pred, y) # mean at batch
-        f += float(f1)
-    f /= len(trainloader)
-    norm_l1_x_list = []
-    for w in weights:
-        norm_l1_x_list.append(torch.norm(w, 1).item())
-    norm_l1_x = sum(norm_l1_x_list)
-    F = f + lmbda * norm_l1_x
-
-    return F
-
-
-
-def compute_func_values(trainloader, model, criterion, lmbda, omega):
-    f = 0.0
-    device = next(model.parameters()).device
-    for index, (X, y) in enumerate(trainloader):
-        X = X.to(device) 
-        y = y.to(device) 
-        y_pred = model.forward(X)
-        f1 = criterion(y_pred, y)
-        f += float(f1)
-    f /= len(trainloader)
-
-    F = f + lmbda * omega
-    return F, f
-
-
-
-
 def accuracy_topk(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
     maxk = max(topk)
@@ -152,9 +56,9 @@ def check_accuracy_onnx(model_path, testloader, two_input=False):
     for X, y in testloader:
         try:
             if not two_input:
-                outputs = ort_sess.run(None, {'input': X.numpy()})[0]
+                outputs = ort_sess.run(None, {'input.1': X.numpy()})[0]
             else:
-                outputs = ort_sess.run(None, {'input.0': X.numpy(), 'input.1': X.numpy()})[0]
+                outputs = ort_sess.run(None, {'input.1': X.numpy(), 'input.2': X.numpy()})[0]
         except:
             continue
         prec1, prec5 = accuracy_topk(torch.tensor(outputs), y.data, topk=(1, 5))
