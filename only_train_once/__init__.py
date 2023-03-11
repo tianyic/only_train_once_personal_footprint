@@ -68,9 +68,10 @@ class OTO:
     def random_set_zero_groups(self):
         self._graph.random_set_zero_groups()
     
-    def compute_flops(self, compressed=False):
-        return compute_flops(self._graph, compressed=compressed)
-
+    def compute_flops(self, compressed=False, verbose=False):
+        flops_info = compute_flops(self._graph, compressed=compressed)
+        return flops_info['total'] if not verbose else flops_info
+        
     def compute_num_params(self, compressed=False):
         import onnx
         import numpy as np
