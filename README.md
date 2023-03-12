@@ -1,16 +1,39 @@
 # Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework
 
-## Remark here that OTOv2 is coming soon, which is an automatic, generic, and user-friendly DNN training and compression framework. We are working on documenting and writing up tutorials.
+This repository is the Pytorch implementation of Only Train Once (OTO). OTO is an automatic general DNN training and compression (via structure pruning) framework. 
 
-This repository is the Pytorch implementation of OTOv1 [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html), appearing in NeurIPS 2021.
+## Publications
 
-Our recent work OTOv2 has been published by ICLR 2023 [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt), which the library will be released in the coming months.
+Please find our series of works.
+
+- [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
+- [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021 .
+
 
 <img width="1105" alt="overview" src="https://user-images.githubusercontent.com/8930611/144922447-843b6a40-4fa3-4af7-85d0-62cc43d1b4ca.png">
 
-## Reference
+## Installation
 
-If you find the repo useful, please kindly cite our papers:
+```bash
+pip install only_train_once
+```
+
+or
+
+```bash
+git clone https://github.com/tianyic/only_train_once.git
+```
+
+<!-- ## Quick Start
+
+We provide an example of OTO framework usage. More explained details can be found in [tutorals](./tutorials/).
+
+### 0. How it works
+ -->
+
+## Citation
+
+If you find the repo useful, please kindly star this repository and cite our papers:
 
 ```
 @inproceedings{chen2023otov2,
@@ -27,7 +50,7 @@ If you find the repo useful, please kindly cite our papers:
   year={2021}
 }
 ```
-
+<!-- 
 ## Zero-Invariant Group (ZIG)
 
 Zero-invariant groups serve as one of two fundamental components to OTO. A ZIG has an attractive property is that if equaling to zero, then the corresponding structure contributes null to the model output, thereby can be directly removed. ZIG is generic to various DNN architectures, such as Conv-Layer, Residual Block, Fully-Connected Layer and Multi-Head Attention Layer as follows.
@@ -41,4 +64,4 @@ Zero-invariant groups serve as one of two fundamental components to OTO. A ZIG h
 
 Half-Space Projected Gradient Descent Method serve as another fundamental component to OTO to promote more ZIGs as zero. Hence, redundant structures can be pruned without retraining. HSPG utilizes a novel Half-Space projection operator to yield group sparsity, which is more effective than the standard proximal method because of a larger projection region. 
 
-<img width="1025" alt="hspg" src="https://user-images.githubusercontent.com/8930611/144924639-1e0b6f36-92bf-4f09-80a8-9e5b3fb9b1d4.png">
+<img width="1025" alt="hspg" src="https://user-images.githubusercontent.com/8930611/144924639-1e0b6f36-92bf-4f09-80a8-9e5b3fb9b1d4.png"> -->
