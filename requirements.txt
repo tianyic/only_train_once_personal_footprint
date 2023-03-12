@@ -1,5 +1,4 @@
 onnx>=1.12.*
-onnxruntime>=1.12.*
 numpy>=1.22.*
 graphviz>=0.20
 pydot>=1.4
