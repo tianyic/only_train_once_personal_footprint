@@ -32,20 +32,7 @@ git clone https://github.com/tianyic/only_train_once.git
 
 We provide an example of OTO framework usage. More explained details can be found in [tutorals](./tutorials/).
 
-### 0. How OTO works
-
-- **Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN and partition DNN's trainable variables into so-called Zero-Invariant Groups (ZIGs). ZIG is a class of minimal removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together. 
-![Presentation1](https://user-images.githubusercontent.com/8930611/224577449-fb2a1ae6-3e29-4a3f-9136-9deb73746741.gif)
-
-
-- **Dual Half-Space Project Gradient (DHSPG).** A structured sparsity optimization problem is formulated. DHSPG is then employed to find out each ZIGs are redundant, which ZIGs are important for the model prediction. DHSPG explores group sparsity more reliably and typically achieves higher genelizarion performance than other optimizers.
-![dhspg](https://user-images.githubusercontent.com/8930611/224577550-3814f6c9-0eaf-4d1c-a978-2251b68c2a1a.png)
-
-
-- **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
-<p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
-
-### 1. Minimal usage example.
+### Minimal usage example. 
 
 ```python
 import torch
@@ -97,3 +84,18 @@ If you find the repo useful, please kindly star this repository and cite our pap
   year={2021}
 }
 ```
+
+
+## How OTO works.
+
+- **Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN and partition DNN's trainable variables into so-called Zero-Invariant Groups (ZIGs). ZIG is a class of minimal removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together. 
+![Presentation1](https://user-images.githubusercontent.com/8930611/224577449-fb2a1ae6-3e29-4a3f-9136-9deb73746741.gif)
+
+
+- **Dual Half-Space Project Gradient (DHSPG).** A structured sparsity optimization problem is formulated. DHSPG is then employed to find out each ZIGs are redundant, which ZIGs are important for the model prediction. DHSPG explores group sparsity more reliably and typically achieves higher genelizarion performance than other optimizers.
+![dhspg](https://user-images.githubusercontent.com/8930611/224577550-3814f6c9-0eaf-4d1c-a978-2251b68c2a1a.png)
+
+
+- **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
+<p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
+
