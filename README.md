@@ -32,9 +32,21 @@ git clone https://github.com/tianyic/only_train_once.git
 
 We provide an example of OTO framework usage. More explained details can be found in [tutorals](./tutorials/).
 
-### 0. How it works
+### 0. How OTO works
 
-#### Automatic Zero-Invariant Group Partition
+- **Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN and partition DNN's trainable variables into so-called Zero-Invariant Groups (ZIGs). ZIG is a class of minimal removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together. 
+
+![zig_partition](https://user-images.githubusercontent.com/8930611/224574564-0a9cbdd4-76e1-4c84-b12c-7d6d0651b603.gif)
+
+
+- **Dual Half-Space Project Gradient (DHSPG).** A structured sparsity optimization problem is formulated. DHSPG is then employed to find out each ZIGs are redundant, which ZIGs are important for the model prediction. DHSPG explores group sparsity more reliably and typically achieves higher genelizarion performance than other optimizers.
+
+![dhspg_git](https://user-images.githubusercontent.com/8930611/224575607-3a6f204e-23c6-4cc2-86b7-075d82e33080.png)
+
+
+- **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
+
+<img width="700" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575775-ce680638-2c03-494a-8bdf-377701bdfa0c.png"> 
 
 
 ## Citation
@@ -56,18 +68,10 @@ If you find the repo useful, please kindly star this repository and cite our pap
   year={2021}
 }
 ```
-<!-- 
-## Zero-Invariant Group (ZIG)
-
-Zero-invariant groups serve as one of two fundamental components to OTO. A ZIG has an attractive property is that if equaling to zero, then the corresponding structure contributes null to the model output, thereby can be directly removed. ZIG is generic to various DNN architectures, such as Conv-Layer, Residual Block, Fully-Connected Layer and Multi-Head Attention Layer as follows.
-
-<img width="995" alt="zig_conv_bn" src="https://user-images.githubusercontent.com/8930611/144923778-3a31718f-5f0e-42cc-a0a9-357aae463700.png">
-<img width="959" alt="zig_residual" src="https://user-images.githubusercontent.com/8930611/144923631-b1f7a4f5-6bd5-4003-be44-2275b9cfa69d.png">
-<img width="836" alt="zig_fc_multi_head" src="https://user-images.githubusercontent.com/8930611/144923967-3458d322-8998-469d-874b-1d59475c0490.png">
 
 
 ## Half-Space Projected Gradient Descent Method (HSPG)
 
 Half-Space Projected Gradient Descent Method serve as another fundamental component to OTO to promote more ZIGs as zero. Hence, redundant structures can be pruned without retraining. HSPG utilizes a novel Half-Space projection operator to yield group sparsity, which is more effective than the standard proximal method because of a larger projection region. 
 
-<img width="1025" alt="hspg" src="https://user-images.githubusercontent.com/8930611/144924639-1e0b6f36-92bf-4f09-80a8-9e5b3fb9b1d4.png"> -->
+<img width="1025" alt="hspg" src="https://user-images.githubusercontent.com/8930611/144924639-1e0b6f36-92bf-4f09-80a8-9e5b3fb9b1d4.png"> 
