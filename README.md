@@ -45,6 +45,38 @@ We provide an example of OTO framework usage. More explained details can be foun
 - **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
 <p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
 
+### 1. Minimal usage example.
+
+```python
+import torch
+from backends import DemoNet
+from only_train_once import OTO
+
+# Create OTO instance
+model = DemoNet()
+dummy_input = torch.zeros(1, 3, 32, 32)
+oto = OTO(model=model.cuda(), dummy_input=dummy_input.cuda())
+
+# Create DHSPG optimizer
+optimizer = oto.dhspg(lr=0.1, target_group_sparsity=0.7)
+
+# Train the DNN as normal via DHSPG
+model.train()
+model.cuda()
+criterion = torch.nn.CrossEntropyLoss()
+for epoch in range(max_epoch):
+    f_avg_val = 0.0
+    for X, y in trainloader:
+        X, y = X.cuda(), y.cuda()
+        y_pred = model.forward(X)
+        f = criterion(y_pred, y)
+        optimizer.zero_grad()
+        f.backward()
+        optimizer.step()
+
+# A DemoNet_compressed.onnx will be generated. 
+oto.compress()
+```
 
 ## Citation
 
@@ -65,10 +97,3 @@ If you find the repo useful, please kindly star this repository and cite our pap
   year={2021}
 }
 ```
-
-
-## Half-Space Projected Gradient Descent Method (HSPG)
-
-Half-Space Projected Gradient Descent Method serve as another fundamental component to OTO to promote more ZIGs as zero. Hence, redundant structures can be pruned without retraining. HSPG utilizes a novel Half-Space projection operator to yield group sparsity, which is more effective than the standard proximal method because of a larger projection region. 
-
-<img width="1025" alt="hspg" src="https://user-images.githubusercontent.com/8930611/144924639-1e0b6f36-92bf-4f09-80a8-9e5b3fb9b1d4.png"> 
