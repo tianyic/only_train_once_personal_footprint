@@ -16,6 +16,8 @@ Please find our series of works.
 
 ## Installation
 
+OTO library can be either install via pip or clone this repository.
+
 ```bash
 pip install only_train_once
 ```
@@ -26,12 +28,14 @@ or
 git clone https://github.com/tianyic/only_train_once.git
 ```
 
-<!-- ## Quick Start
+## Quick Start
 
 We provide an example of OTO framework usage. More explained details can be found in [tutorals](./tutorials/).
 
 ### 0. How it works
- -->
+
+#### Automatic Zero-Invariant Group Partition
+
 
 ## Citation
 
