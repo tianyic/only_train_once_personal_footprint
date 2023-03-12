@@ -44,7 +44,7 @@ We provide an example of OTO framework usage. More explained details can be foun
 
 
 - **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
-<img width="700" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575775-ce680638-2c03-494a-8bdf-377701bdfa0c.png"> 
+<img width="700" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"> 
 
 
 ## Citation
