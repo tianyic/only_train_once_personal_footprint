@@ -39,8 +39,7 @@ We provide an example of OTO framework usage. More explained details can be foun
 
 
 - **Dual Half-Space Project Gradient (DHSPG).** A structured sparsity optimization problem is formulated. DHSPG is then employed to find out each ZIGs are redundant, which ZIGs are important for the model prediction. DHSPG explores group sparsity more reliably and typically achieves higher genelizarion performance than other optimizers.
-
-![dhspg_git](https://user-images.githubusercontent.com/8930611/224575607-3a6f204e-23c6-4cc2-86b7-075d82e33080.png)
+![dhspg](https://user-images.githubusercontent.com/8930611/224577550-3814f6c9-0eaf-4d1c-a978-2251b68c2a1a.png)
 
 
 - **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
