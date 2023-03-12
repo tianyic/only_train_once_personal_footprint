@@ -1,4 +1,7 @@
-# Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework
+# Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
+
+![otov2_overall0](https://user-images.githubusercontent.com/8930611/224572405-a6914105-75c4-44bd-a95e-a31564db5678.png)
+
 
 This repository is the Pytorch implementation of Only Train Once (OTO). OTO is an automatic general DNN training and compression (via structure pruning) framework. 
 
