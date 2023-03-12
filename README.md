@@ -35,7 +35,7 @@ We provide an example of OTO framework usage. More explained details can be foun
 ### 0. How OTO works
 
 - **Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN and partition DNN's trainable variables into so-called Zero-Invariant Groups (ZIGs). ZIG is a class of minimal removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together. 
-![zig_partition](https://user-images.githubusercontent.com/8930611/224574564-0a9cbdd4-76e1-4c84-b12c-7d6d0651b603.gif)
+![zig_partition](https://user-images.githubusercontent.com/8930611/224577374-696e3e5a-e0fd-46c5-8075-0a0f39b34397.gif)
 
 
 - **Dual Half-Space Project Gradient (DHSPG).** A structured sparsity optimization problem is formulated. DHSPG is then employed to find out each ZIGs are redundant, which ZIGs are important for the model prediction. DHSPG explores group sparsity more reliably and typically achieves higher genelizarion performance than other optimizers.
@@ -44,7 +44,7 @@ We provide an example of OTO framework usage. More explained details can be foun
 
 
 - **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
-<img width="700" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"> 
+<p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
 
 
 ## Citation
