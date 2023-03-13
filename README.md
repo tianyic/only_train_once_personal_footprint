@@ -78,6 +78,11 @@ oto.compress()
 - **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
 <p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
 
+## More full and compressed models
+
+Please find more full and compressed models by OTO on [checkpoints](https://drive.google.com/drive/folders/1lZ7Wsehi0hr_g8nztbAFEJIhF8C4Q8Kp?usp=share_link). The full and compressed models return the exact same outputs given the same inputs.
+
+The dependancy graphs for ZIG partition can be found at [Dependancy Graphs](https://drive.google.com/drive/folders/1XVRUEr4cUyT6xVknLF2SsYKgXBZ0gjeD?usp=share_link)
 
 ## Citation
 
