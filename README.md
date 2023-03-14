@@ -75,7 +75,7 @@ oto.compress()
 ![dhspg](https://user-images.githubusercontent.com/8930611/224577550-3814f6c9-0eaf-4d1c-a978-2251b68c2a1a.png)
 
 
-- **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model return the exact same output as the full model**, thereby **no further fine-tuning** being required. 
+- **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model returns the exact same output as the full model**. Therefore, **no further fine-tuning** is required. 
 <p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
 
 ## More full and compressed models
