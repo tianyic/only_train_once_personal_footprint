@@ -34,7 +34,7 @@ class OTO:
                 view=view)
 
     def dhspg(self, lr=0.1, lmbda=1e-3, lmbda_amplify=1.1, hat_lmbda_coeff=10, epsilon=0.0, weight_decay=0.0, first_momentum=0.0, second_momentum=0.0, \
-               variant='sgd', target_group_sparsity=0.5, tolerance_group_sparsity=0.05, partition_step=0, half_space_project_steps=0,\
+               variant='sgd', target_group_sparsity=0.5, tolerance_group_sparsity=0.05, partition_step=None, start_pruning_steps=0, half_space_project_steps=None,\
                warm_up_steps=0, dampening=0.0, group_divisible=1, fixed_zero_groups=True):
         self._optimizer = DHSPG(
             params=self._graph.params_groups(epsilon=epsilon),
@@ -52,6 +52,7 @@ class OTO:
             tolerance_group_sparsity=tolerance_group_sparsity,
             partition_step=partition_step,
             warm_up_steps=warm_up_steps,
+            start_pruning_steps=start_pruning_steps,
             half_space_project_steps=half_space_project_steps,
             group_divisible=group_divisible,
             fixed_zero_groups=fixed_zero_groups)
