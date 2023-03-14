@@ -16,7 +16,7 @@ Please find our series of works.
 
 ## Installation
 
-OTO library can be either install via pip or clone this repository.
+OTO library can be either installed via pip or clone this repository.
 
 ```bash
 pip install only_train_once
@@ -82,7 +82,18 @@ oto.compress()
 
 Please find more full and compressed models by OTO on [checkpoints](https://drive.google.com/drive/folders/1lZ7Wsehi0hr_g8nztbAFEJIhF8C4Q8Kp?usp=share_link). The full and compressed models return the exact same outputs given the same inputs.
 
-The dependancy graphs for ZIG partition can be found at [Dependancy Graphs](https://drive.google.com/drive/folders/1XVRUEr4cUyT6xVknLF2SsYKgXBZ0gjeD?usp=share_link)
+The dependancy graphs for ZIG partition can be found at [Dependancy Graphs](https://drive.google.com/drive/folders/1XVRUEr4cUyT6xVknLF2SsYKgXBZ0gjeD?usp=share_link).
+
+## To do list
+
+We will routinely complete the following item.
+
+- Provide more tutorials to cover more use cases and applications of OTO. 
+
+- Provide documentations of the OTO API.
+
+- Optimize the dependancy list.
+
 
 ## Citation
 
