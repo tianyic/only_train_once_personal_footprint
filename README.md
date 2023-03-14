@@ -86,7 +86,7 @@ The dependancy graphs for ZIG partition can be found at [Dependancy Graphs](http
 
 ## To do list
 
-We will routinely complete the following item.
+We will routinely complete the following items.
 
 - Provide more tutorials to cover more use cases and applications of OTO. 
 
