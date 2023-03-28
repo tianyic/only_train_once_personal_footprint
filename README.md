@@ -84,14 +84,16 @@ Please find more full and compressed models by OTO on [checkpoints](https://driv
 
 The dependancy graphs for ZIG partition can be found at [Dependancy Graphs](https://drive.google.com/drive/folders/1XVRUEr4cUyT6xVknLF2SsYKgXBZ0gjeD?usp=share_link).
 
-
 ## Remarks
 
 The current OTO library depends on 
 
-- The target model could be converted into ONNX format for conducting dependancy graph construction.
+- The target model needed to be convertable into ONNX format for conducting dependancy graph construction.
 
-- The effectiveness (ultimate compression ratio and model performance) relies on the proper usage of DHSPG optimizer. We will provide more tutorials for elaboration.
+- Please check our supported [operators](./only_train_once/operation/operators_dict.py) list if meeting some errors.
+
+- The effectiveness (ultimate compression ratio and model performance) relies on the proper usage of DHSPG optimizer. Please go through our [tutorals](./tutorials/) (will be kept updated).
+
 
 ## To do list
 
