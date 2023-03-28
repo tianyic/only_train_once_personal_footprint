@@ -1,7 +1,7 @@
 DEFAULT_OPT_PARAMS = {
     "sgd": {
         "first_momentum": 0.0,
-        "first_momentum": 0.0,
+        "second_momentum": 0.0,
         "dampening": 0.0,
         "weight_decay": 0.0,
         "lmbda": 1e-3,
