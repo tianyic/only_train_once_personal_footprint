@@ -6,7 +6,7 @@ def parse_requirements(filename):
 
 reqs = parse_requirements('requirements.txt')
 
-VERSION = '2.0.6'
+VERSION = '2.0.7'
 DESCRIPTION = 'Only Train Once (OTO): Automatic One-Shot General DNN Training and Compression Framework'
 LONG_DESCRIPTION = 'Only Train Once (OTO): Automatic One-Shot General DNN Training and Compression Framework'
 
