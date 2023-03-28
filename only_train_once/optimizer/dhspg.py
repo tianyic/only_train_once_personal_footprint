@@ -10,32 +10,15 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 from assets.group_types import GROUP_TYPE
+from hyperparameter import DEFAULT_OPT_PARAMS
 
 class DHSPG(Optimizer):
 
-    def __init__(self, params, lr=required, lmbda=1e-3, lmbda_amplify=1.1, hat_lmbda_coeff=10, epsilon=0.0, weight_decay=0.0, first_momentum=0.0, second_momentum=0.99, dampening=0.0, 
-                 variant='sgd', target_group_sparsity=0.5, tolerance_group_sparsity=0.05, start_pruning_steps=0, partition_step=None, half_space_project_steps=None, warm_up_steps=0, group_divisible=1, fixed_zero_groups=True):
+    def __init__(self, params, variant='sgd', lr=required, lmbda=None, lmbda_amplify=None, hat_lmbda_coeff=None, epsilon=0.0, first_momentum=None, second_momentum=None, dampening=None, weight_decay=None, 
+                 target_group_sparsity=0.5, tolerance_group_sparsity=0.05, start_pruning_steps=0, partition_step=None, half_space_project_steps=None, warm_up_steps=0, group_divisible=1, fixed_zero_groups=True):
         if lr is not required and lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
 
-        if  lmbda < 0.0:
-            raise ValueError("Invalid lambda: {}".format(lmbda))
-
-        if weight_decay < 0.0:
-            raise ValueError("Invalid weight_decay: {}".format(weight_decay))
-
-        if first_momentum < 0.0:
-            raise ValueError("Invalid first order momentum: {}".format(first_momentum))
-
-        if second_momentum < 0.0:
-            raise ValueError("Invalid second order momentum: {}".format(second_momentum))
-
-        if dampening < 0.0:
-            raise ValueError("Invalid dampening: {}".format(dampening))
-
-        if epsilon < 0.0:
-            raise ValueError("Invalid epsilon: {}".format(epsilon))
-        
         if partition_step is None or half_space_project_steps is None:
             assert start_pruning_steps >= 0 
             self.partition_step = start_pruning_steps
@@ -43,6 +26,17 @@ class DHSPG(Optimizer):
         else:
             self.partition_step = partition_step
             self.half_space_project_steps = half_space_project_steps
+        
+        # Set up hyper-parameters related to group sparsity exploration
+        lmbda = lmbda if lmbda is not None else DEFAULT_OPT_PARAMS[variant]['lmbda']
+        lmbda_amplify = lmbda_amplify if lmbda_amplify is not None else DEFAULT_OPT_PARAMS[variant]['lmbda_amplify']
+        hat_lmbda_coeff = hat_lmbda_coeff if hat_lmbda_coeff is not None else DEFAULT_OPT_PARAMS[variant]['hat_lmbda_coeff']
+        # Set up hyper-parameters related to baseline optimizer
+        first_momentum = first_momentum if first_momentum is not None else DEFAULT_OPT_PARAMS[variant]['first_momentum']
+        second_momentum = second_momentum if second_momentum is not None else DEFAULT_OPT_PARAMS[variant]['second_momentum']
+        dampening = dampening if dampening is not None else DEFAULT_OPT_PARAMS[variant]['dampening']
+        weight_decay = weight_decay if weight_decay is not None else DEFAULT_OPT_PARAMS[variant]['weight_decay']
+        
         self.partitoned = False
         self.warm_up_steps = warm_up_steps
         
@@ -74,7 +68,6 @@ class DHSPG(Optimizer):
         super(DHSPG, self).__setstate__(state)
    
     def update_xs(self, group, xs, new_flatten_xs):
-        # print("update_xs")
         track_id = 0
         left_pointer = 0
         right_pointer = 0
