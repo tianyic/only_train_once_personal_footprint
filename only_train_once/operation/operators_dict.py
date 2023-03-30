@@ -14,6 +14,11 @@ OPERATOR_DICT = {
         "Type": "Stem",
         "Shape-Dependent": "N/A"
     },
+    "MatMul": {
+        "Zero-Invariant": "TRUE",
+        "Type": "Stem",
+        "Shape-Dependent": "N/A"
+    },
     "BatchNormalization": {
         "Zero-Invariant": "TRUE",
         "Type": "Auxilary",
@@ -68,6 +73,16 @@ OPERATOR_DICT = {
         "Zero-Invariant": "TRUE",
         "Type": "Joint",
         "Shape-Dependent": "TRUE"
+    },
+    "Div": {
+        "Zero-Invariant": "TRUE",
+        "Type": "Activation",
+        "Shape-Dependent": "FALSE"
+    },
+    "Erf": {
+        "Zero-Invariant": "TRUE",
+        "Type": "Activation",
+        "Shape-Dependent": "FALSE"
     },
     "Concat": {
         "Zero-Invariant": "TRUE",

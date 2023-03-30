@@ -26,6 +26,7 @@ class Node():
         self.inputs = ['out-' + str(i) for i in inputs]
         self.outputs = ['out-' + str(o) for o in outputs]
         self.params = params    
+        self.params_transpose = False
         self.output_shape = output_shape
         self.input_shape = []
         self.op_params = op_params if op_params else {}
@@ -92,8 +93,14 @@ class Node():
         return self.op.name == "Linear" or self.op.name == 'linear' \
             or self.op.name == "Gemm" or self.op.name == "gemm"
 
+    def is_matmul(self):
+        return self.op.name == "MatMul" or self.op.name == 'matmul'
+
+    def is_transpose(self):
+        return self.op.name == "Transpose" or self.op.name == 'transpose'
+
     def is_stem(self):
-        return self.op.type == "Stem" or self.op.type == "stem"
+        return (self.op.type == "Stem" or self.op.type == "stem") and len(self.params) > 0
 
     def is_zero_invariant(self):
         return self.op.zero_invariant

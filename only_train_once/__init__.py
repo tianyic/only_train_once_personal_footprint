@@ -58,12 +58,15 @@ class OTO:
             fixed_zero_groups=fixed_zero_groups)
         return self._optimizer
 
-    def compress(self, compressed_model_path=None, dummy_input=None, dynamic_axes=[False, dict()]):
+    def compress(self, compressed_model_path=None, dummy_input=None, opset_version=None, input_names=None, output_names=None, dynamic_axes=[False, dict()]):
         _, self.compressed_model_path, self.full_model_path = automated_compression(
             oto_graph=self._graph,
             model=self._model,
             dummy_input=self._dummy_input if dummy_input is None else dummy_input,
             compressed_model_path=compressed_model_path,
+            opset_version=opset_version,
+            input_names=input_names,
+            output_names=output_names,
             dynamic_axes=dynamic_axes)
     
     def random_set_zero_groups(self):

@@ -47,13 +47,17 @@ class ConnectedComponent:
         for node in self.nodes.values():
             if node.is_concat(axis=1):
                 self.type = GROUP_TYPE["auxilary"]
-            if node.op.name == "conv":
+            if node.is_conv():
                 self.type = GROUP_TYPE["conv"]
-            elif node.op.name == "linear" or node.op.name == "gemm":
+            elif node.is_linear():
+                self.type = GROUP_TYPE["linear"]
+            elif node.is_matmul() and node.is_stem():
                 self.type = GROUP_TYPE["linear"]
             elif node.op.name == "multi-head-linear":
                 self.type = GROUP_TYPE["multi-head-linear"]
             self.params |= set(node.params)
+        if self.id == "out-117_out-118_out-119_out-121_out-122_out-124_out-123_out-120_out-116":
+            print(self.type)
         self.type = GROUP_TYPE["default"] if (self.contain_output_nodes(output_nodes) \
                     or self.contain_non_zero_invariant_nodes()) else self.type
         self.epsilon = opt["optimizer"]["epsilon"][self.type] if opt is not None else 0.0
@@ -107,8 +111,14 @@ class ConnectedComponent:
                 return True
         return False
 
-    def contain_non_zero_invariant_nodes(self):
+    def contain_non_zero_invariant_nodes(self):        
         for node in self.nodes.values():
             if not node.is_zero_invariant():
+                return True
+        return False
+
+    def contain_param_transpose_nodes(self):
+        for node in self.nodes.values():
+            if node.params_transpose:
                 return True
         return False

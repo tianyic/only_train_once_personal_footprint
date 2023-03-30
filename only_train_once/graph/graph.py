@@ -250,7 +250,19 @@ class Graph():
             else:
                 for node_in in nodes_in:
                     node.input_shape.append(node_in.output_shape)
-
+        
+        self.matmul_nodes = list()
+        for i, node in enumerate(self.nodes.values()):
+            if node.is_matmul():
+                nodes_in = self.incoming(node)
+                for node_in in nodes_in:
+                    if node_in.is_transpose() and len(node_in.params) > 0:
+                        node.params += node_in.params
+                        node.params_transpose = True
+                        node_in.params = list()
+                if len(node.params) > 0:
+                    self.matmul_nodes.append(node)
+                
     def compress(self):
         import onnx
         from onnx import numpy_helper
@@ -268,10 +280,15 @@ class Graph():
             for name in cc.onnx_params:
                 numpy_param = onnx.numpy_helper.to_array(self.params_onnx[name])
                 if cc.raw_num_groups == cc.num_groups:
-                    pruned_onnx_param = numpy_param[cc.non_zero_group_idxes, ...]
+                    if cc.contain_param_transpose_nodes():
+                        pruned_onnx_param = numpy_param[:, cc.non_zero_group_idxes, ...]
+                    else:
+                        pruned_onnx_param = numpy_param[cc.non_zero_group_idxes, ...]
                 else:
-                    pruned_onnx_param = numpy_param[cc.raw_non_zero_group_idxes, ...]
-
+                    if cc.contain_param_transpose_nodes():
+                        pruned_onnx_param = numpy_param[:, cc.raw_non_zero_group_idxes, ...]
+                    else:
+                        pruned_onnx_param = numpy_param[cc.raw_non_zero_group_idxes, ...]
                 onnx_param = onnx.helper.make_tensor(
                         name=name,
                         data_type=onnx.TensorProto.FLOAT,
@@ -291,9 +308,7 @@ class Graph():
         # Each node prunes redundancy depending on incoming or dependent CC.
         for cc in self.connected_components.values():
             if cc.is_auxilary():
-                # print(cc)
                 for name in cc.onnx_params:
-                    # print(name)
                     node = self.params_to_nodes[name][0]
                     numpy_param = onnx.numpy_helper.to_array(self.params_onnx[name])
                     pruned_onnx_param = numpy_param[cc.non_zero_group_idxes, ...]
@@ -311,26 +326,38 @@ class Graph():
                 visited = {}
                 for node_id in self.nodes:
                     visited[node_id] = False
-                incoming_cc_ids = set()
+                incoming_cc_ids = set()                 
                 dfs_helper(self, node, node.cc_id, visited, incoming_cc_ids)
+
                 # If no-incoming CCs, then the node is directly connected regardless stem node to the input
                 # there is no need to adjust parameters
                 if len(incoming_cc_ids) == 0:
                     continue
                 else:
-                    incoming_cc = self.connected_components[next(iter(incoming_cc_ids))]
+                    incoming_cc = None
+                    for incoming_cc_id in incoming_cc_ids:
+                        curr_cc = self.connected_components[incoming_cc_id]
+                        if curr_cc.type > GROUP_TYPE['default']:
+                            incoming_cc = curr_cc
+                            break
+                    if incoming_cc is None:
+                        continue
                     if incoming_cc.type <= GROUP_TYPE['default']:
                         continue
-                    if len(numpy_param.shape) >= 2 and (node.is_conv() or node.is_linear()):
+                    if len(numpy_param.shape) >= 2 and (node.is_conv() or node.is_linear() or node.is_matmul()):
                         node.pruned_shape[1] = len(incoming_cc.non_zero_group_idxes)
-                        pruned_onnx_param = numpy_param[:, incoming_cc.non_zero_group_idxes, ...]
+                        pruned_onnx_param = None
+                        if cc.contain_param_transpose_nodes():
+                            pruned_onnx_param = numpy_param[incoming_cc.non_zero_group_idxes, ...]
+                        else:   
+                            pruned_onnx_param = numpy_param[:, incoming_cc.non_zero_group_idxes, ...]
                         onnx_param = onnx.helper.make_tensor(
                             name=name,
                             data_type=onnx.TensorProto.FLOAT,
                             dims=pruned_onnx_param.shape,
                             vals=pruned_onnx_param.flatten().tolist())
                         self.params_onnx[name].CopyFrom(onnx_param)
-
+        
     def search(self, pattern):
         """Searches the graph for a sub-graph that matches the given pattern
         and returns the first match it finds.
@@ -425,7 +452,7 @@ class Graph():
                     depend_cc = self.connected_components[depend_cc_id]
                     depend_cc.auxiliary_ccs.append((cc.id, offset))
                     offset += depend_cc.num_groups
-
+        
     def random_set_zero_groups(self, group_sparsity=0.5):
         for cc in self.connected_components.values():
             if cc.is_auxilary():
@@ -450,6 +477,8 @@ class Graph():
     def set_zero_groups(self):
         for cc in self.connected_components.values():
             if cc.is_auxilary():
+                continue
+            if cc.type < GROUP_TYPE['auxilary']:
                 continue
             cc_params_objs = [self.params_grad[name] if name in self.params_grad else self.params_no_grad[name] for name in cc.params]
             xs = []

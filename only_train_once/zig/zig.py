@@ -117,7 +117,6 @@ def automated_partition_zigs(graph, opt=None):
     remaining_nodes = get_remaining_nodes(merged_connected_components, graph.nodes)
     individual_connected_components = group_individual_nodes(remaining_nodes)
 
-
     # Step 6: Setup connected components fo graph
     graph.set_connected_components(merged_connected_components + individual_connected_components)
 

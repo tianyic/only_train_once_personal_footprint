@@ -2,26 +2,29 @@ from time import sleep
 import torch
 import os
 
-def automated_compression(oto_graph, model, dummy_input, compressed_model_path, dynamic_axes=[False, dict()]):
+def automated_compression(oto_graph, model, dummy_input, compressed_model_path, opset_version=None, input_names=None, output_names=None, dynamic_axes=[False, dict()]):
     compressed_model_path = './' if compressed_model_path is None else compressed_model_path
     full_group_sparse_model_path = os.path.join(compressed_model_path, (model.name if hasattr(model, 'name') else type(model).__name__) + "_full_group_sparse.onnx" )
     compressed_model_path = os.path.join(compressed_model_path, (model.name if hasattr(model, 'name') else type(model).__name__) + "_compressed.onnx" )
-    device = next(model.parameters()).device
 
     if dynamic_axes[0]:
         torch.onnx.export(
             model, 
-            dummy_input.to(device), 
+            dummy_input, 
             full_group_sparse_model_path, 
-            input_names=['input'],
-            output_names=['output'],
+            opset_version=9 if opset_version is None else opset_version,
+            input_names=['input'] if input_names is None else input_names,
+            output_names=['output'] if output_names is None else output_names,
             dynamic_axes=dynamic_axes[1]
         )
     else:
         torch.onnx.export(
             model, 
-            dummy_input.to(device), 
-            full_group_sparse_model_path
+            dummy_input, 
+            full_group_sparse_model_path,
+            opset_version=9 if opset_version is None else opset_version,
+            input_names=['input'] if input_names is None else input_names,
+            output_names=['output'] if output_names is None else output_names,
         )  
 
     import onnx
@@ -71,7 +74,8 @@ def assign_onnx_tensors_on_oto(oto_graph, onnx_graph):
                 matched = True
         if not matched:
             remaining_tensors.append(tensor)
-
+    
+    # Tackle conv-bn fuse
     conv_param_count = 0
     for tensor in remaining_tensors:
         if "Conv" not in tensor.name and "conv" not in tensor.name:
@@ -88,3 +92,16 @@ def assign_onnx_tensors_on_oto(oto_graph, onnx_graph):
         for node in conv_bn_fuse:
             if node.is_conv():
                 node.params.append(tensor.name)
+    
+    # Tackle MatMul 
+    matmul_param_count = 0
+    for tensor in remaining_tensors:
+        if "MatMul" not in tensor.name and "matmul" not in tensor.name:
+            continue
+        matmul_node = oto_graph.matmul_nodes[matmul_param_count]
+        cc_id = matmul_node.cc_id
+        cc = oto_graph.connected_components[cc_id]
+        cc.onnx_params.add(tensor.name)
+        oto_graph.params_onnx[tensor.name] = tensor
+        matmul_node.params.append(tensor.name)
+        matmul_param_count += 1
