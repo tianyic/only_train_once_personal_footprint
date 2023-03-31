@@ -92,7 +92,7 @@ The current OTO library depends on
 
 - Please check our supported [operators](./only_train_once/operation/operators_dict.py) list if meeting some errors.
 
-- The effectiveness (ultimate compression ratio and model performance) relies on the proper usage of DHSPG optimizer. Please go through our [tutorals](./tutorials/) (will be kept updated).
+- The effectiveness (ultimate compression ratio and model performance) relies on the proper usage of DHSPG optimizer. Please go through our [tutorials](./tutorials/) for setup (will be kept updated).
 
 
 ## To do list
