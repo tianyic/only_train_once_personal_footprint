@@ -1,5 +1,16 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
+<p align="center">
+    <img src="https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white">
+    <img src="https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white">
+    <img src="https://img.shields.io/badge/DNN-training-yellow?logo=bitcoin-lightning&logoColor=white">
+    <img src="https://img.shields.io/badge/DNN-compress-purple?logo=bitcoin-lightning&logoColor=white">
+    <img src="https://img.shields.io/badge/build-pytorch-orange?logo=bitcoin-lightning&logoColor=white">
+    <img src="https://img.shields.io/badge/build-onnx-green?logo=bitcoin-lightning&logoColor=white">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+</p>
+
 ![otov2_overall0](https://user-images.githubusercontent.com/8930611/224572517-5f284990-e000-4de5-80d2-04900dd672af.png)
 
 This repository is the Pytorch implementation of Only Train Once (OTO). OTO is an automatic general DNN training and compression (via structure pruning) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
