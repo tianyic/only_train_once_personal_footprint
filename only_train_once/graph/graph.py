@@ -589,6 +589,7 @@ class Graph():
                     depend_cc_param_groups = param_groups[depend_cc.id]
                     depend_cc_param_groups['auxiliary_ccs'].append((cc.id, offset))
                     offset += depend_cc.num_groups
+        param_groups = dict(sorted(param_groups.items(), key=lambda kv:(kv[0], kv[1])))
         return param_groups.values()
     
 def pytorch_id(node):
