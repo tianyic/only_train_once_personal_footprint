@@ -6,7 +6,7 @@ This repository is the Pytorch implementation of Only Train Once (OTO). OTO is a
 
 ## Working Item
 
-We notice the `TypeError: 'torch._C.Node' object is not subscriptable` raised by some specific versions of pytorch, e.g., torch 1.12 and 2.0. 
+We notice the `TypeError: 'torch._C.Node' object is not subscriptable` raised by some specific versions of pytorch, e.g., torch 2.0. 
 
 We are working on reformulating the trace graph construction for fixing it.
 
