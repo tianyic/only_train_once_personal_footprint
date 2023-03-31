@@ -326,7 +326,7 @@ class DHSPG(Optimizer):
                         # If not reach target group sparsity, adjust lambda if needed
                         if not self.reach_target_group_sparsity():
                             # Groups need to adjust lambda 
-                            groups_adjust_lambda = group['magnitude_penalize_bool'] & (flatten_x_grad_inner_prod < 0)
+                            groups_adjust_lambda = group['magnitude_penalize_bool'].cuda() & (flatten_x_grad_inner_prod < 0)
                             lambdas_lower_bound = -flatten_x_grad_inner_prod[groups_adjust_lambda] / flatten_x_norm[groups_adjust_lambda]
                             lambdas_upper_bound = -(flatten_grad_norm[groups_adjust_lambda] * flatten_grad_norm[groups_adjust_lambda] *\
                                                 flatten_x_norm[groups_adjust_lambda] / flatten_x_grad_inner_prod[groups_adjust_lambda])
