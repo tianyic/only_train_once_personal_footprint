@@ -1,5 +1,7 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
 ![otov2_overall0](https://user-images.githubusercontent.com/8930611/224572517-5f284990-e000-4de5-80d2-04900dd672af.png)
 
 This repository is the Pytorch implementation of Only Train Once (OTO). OTO is an automatic general DNN training and compression (via structure pruning) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
@@ -90,7 +92,7 @@ Please find more full and compressed models by OTO on [checkpoints](https://driv
 
 The dependancy graphs for ZIG partition can be found at [Dependancy Graphs](https://drive.google.com/drive/folders/1XVRUEr4cUyT6xVknLF2SsYKgXBZ0gjeD?usp=share_link).
 
-## Remarks
+## Remarks and to do list
 
 The current OTO library depends on 
 
@@ -100,9 +102,6 @@ The current OTO library depends on
 
 - The effectiveness (ultimate compression ratio and model performance) relies on the proper usage of DHSPG optimizer. Please go through our [tutorials](./tutorials/) for setup (will be kept updated).
 
-
-## To do list
-
 We will routinely complete the following items.
 
 - Provide more tutorials to cover more use cases and applications of OTO. 
@@ -111,6 +110,9 @@ We will routinely complete the following items.
 
 - Optimize the dependancy list.
 
+## Welcome Contributions
+
+We greatly appreciate the contributions from our open-source community to make DNN's training and compression to be more automatic and convinient. 
 
 ## Citation
 
