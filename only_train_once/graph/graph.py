@@ -195,7 +195,7 @@ class Graph():
             # Get Operation
             op_name = torch_node.kind().split("::")[-1].lower()
             # Operation Parameters
-            op_params = {k: torch_node[k] for k in torch_node.attributeNames()} 
+            op_params = {k: getattr(torch_node, torch_node.kindOf(k))(k) for k in torch_node.attributeNames()}
             op = None
             if op_name in OP_DICT:
                 op= OP_DICT[op_name]
