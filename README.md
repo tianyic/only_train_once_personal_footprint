@@ -1,6 +1,6 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
-[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#)[![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#)[![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#)[![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#)[![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#)[![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#)[![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#)[![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
+[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
 
 ![otov2_overall0](https://user-images.githubusercontent.com/8930611/224572517-5f284990-e000-4de5-80d2-04900dd672af.png)
