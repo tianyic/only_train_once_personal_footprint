@@ -72,14 +72,15 @@ def assign_onnx_tensors_on_oto(oto_graph, onnx_graph):
         if not matched:
             remaining_tensors.append(tensor)
 
-    conv_param_count = 0
+    # Tackle the Conv-BN fusion
+    conv_param_idx = -1
     for tensor in remaining_tensors:
         if "Conv" not in tensor.name and "conv" not in tensor.name:
             continue
         # print(f"Tensor Name: {tensor.name}, Data Type: {tensor.data_type}, Shape: {tensor.dims}")
-        idx = conv_param_count // 2
-        conv_param_count += 1
-        conv_bn_fuse = oto_graph.fused_conv_bns[idx]
+        if len(tensor.dims) == 4:
+            conv_param_idx += 1
+        conv_bn_fuse = oto_graph.fused_conv_bns[conv_param_idx]
         cc_id = conv_bn_fuse[0].cc_id
         cc = oto_graph.connected_components[cc_id]
         cc.onnx_params.add(tensor.name)
