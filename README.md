@@ -23,7 +23,7 @@ Please find our series of works.
 
 ## Installation
 
-OTO library can be either installed via pip or clone this repository.
+This package runs under PyTorch 3.9+ except 3.12 (recommend 3.11 and 3.13). Use `pip` or `git clone` to install.
 
 ```bash
 pip install only_train_once
