@@ -7,6 +7,10 @@
 
 This repository is the Pytorch implementation of Only Train Once (OTO). OTO is an automatic general DNN training and compression (via structure pruning) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
 
+## Working Items.
+
+We will release detailed documentations regarding the OTO API in the coming week.
+
 ## Publications
 
 Please find our series of works.

@@ -440,9 +440,8 @@ class DHSPG(Optimizer):
         
         for i, group in enumerate(self.param_groups):
             if group['group_type'] >= GROUP_TYPE['multi-head-linear']:
-                xs, grads = self.get_xs_grads(group)
+                xs, _ = self.get_xs_grads(group, require_grad=False)
                 flatten_x = torch.cat(xs, dim = 1)
-                flatten_grad = torch.cat(grads, dim = 1)
                 if 'magnitude_penalize' not in group or 'not_magnitude_penalize' not in group:
                     return 0.0, 0.0, 0, 0
                 group['x_norm_g_p'] = torch.sum(torch.norm(flatten_x[group['magnitude_penalize']], p=2, dim=1))
