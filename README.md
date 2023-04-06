@@ -23,7 +23,7 @@ Please find our series of works.
 
 ## Installation
 
-This package runs under PyTorch 3.9+ except 3.12 (recommend 3.11 and 3.13). Use `pip` or `git clone` to install.
+This package runs under PyTorch 1.9+ except 1.12 (recommend 1.11 and 1.13). Use `pip` or `git clone` to install.
 
 ```bash
 pip install only_train_once
