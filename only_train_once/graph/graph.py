@@ -3,7 +3,6 @@ import torch
 import numpy as np
 from collections import defaultdict
 
-import tqdm
 from .connected_component import GROUP_TYPE
 from .node import Node
 from assets.theme import THEMES
@@ -195,8 +194,7 @@ class Graph():
         # Loop through nodes from torch_graph to build graph for OTO
         torch_nodes_by_inputs = defaultdict(set)
         torch_nodes_by_outputs = defaultdict(set)
-        total_nodes = len(list(torch_graph.nodes()))
-        for torch_node in tqdm.tqdm(torch_graph.nodes(), total=total_nodes):
+        for torch_node in torch_graph.nodes():
             # Get Operation
             op_name = torch_node.kind().split("::")[-1].lower()
             # Operation Parameters
@@ -239,7 +237,7 @@ class Graph():
             if len(self.outgoing(node)) == 0:
                 self.output_nodes.append(node.id)
 
-        for i, node in enumerate(tqdm.tqdm(self.nodes.values(), total=total_nodes)):
+        for i, node in enumerate(self.nodes.values()):
             if len(node.inputs) == 0:
                 continue
             nodes_in = self.incoming(node)
