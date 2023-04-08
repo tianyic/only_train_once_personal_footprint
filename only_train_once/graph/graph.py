@@ -205,6 +205,7 @@ class Graph():
             if op_name in OP_DICT:
                 op= OP_DICT[op_name]
             else:
+                print('Unknown op:', op_name)
                 op = Operator(name=op_name, params=op_params)
                 OP_DICT[op_name] = op
 
