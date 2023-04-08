@@ -387,7 +387,7 @@ class DHSPG(Optimizer):
         total_num_groups = torch.zeros(len(GROUP_TYPE)) + 1e-6
         total_num_zero_groups = torch.zeros(len(GROUP_TYPE))
 
-        omega = 0.0
+        omega = torch.tensor(0.0)
         for group in self.param_groups:
             if group['group_type'] == GROUP_TYPE['no-update']:
                 """Params that do not need update"""
