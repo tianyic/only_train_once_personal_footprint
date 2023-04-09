@@ -1,6 +1,7 @@
 import imp
 import torch
 import numpy as np
+from collections import defaultdict
 
 from .connected_component import GROUP_TYPE
 from .node import Node
@@ -191,6 +192,8 @@ class Graph():
         self._parse_tensors_info(model.state_dict(), str(torch_graph))
 
         # Loop through nodes from torch_graph to build graph for OTO
+        torch_nodes_by_inputs = defaultdict(set)
+        torch_nodes_by_outputs = defaultdict(set)
         for torch_node in torch_graph.nodes():
             # Get Operation
             op_name = torch_node.kind().split("::")[-1].lower()
@@ -200,6 +203,7 @@ class Graph():
             if op_name in OP_DICT:
                 op= OP_DICT[op_name]
             else:
+                print('Unknown op:', op_name)
                 op = Operator(name=op_name, params=op_params)
                 OP_DICT[op_name] = op
 
@@ -218,11 +222,16 @@ class Graph():
                         params=params, inputs=inputs, outputs=outputs, output_shape=output_shape)
 
             self.add_node(node)
+
             # Add edges
-            for target_torch_node in torch_graph.nodes():
-                target_inputs = [i.unique() for i in target_torch_node.inputs()]
-                if set(outputs) & set(target_inputs):
+            for output in outputs:
+                torch_nodes_by_outputs[output].add(torch_node)
+                for target_torch_node in torch_nodes_by_inputs[output]:
                     self.add_edge_by_id(pytorch_id(torch_node), pytorch_id(target_torch_node))
+            for input in inputs:
+                torch_nodes_by_inputs[input].add(torch_node)
+                for target_torch_node in torch_nodes_by_outputs[input]:
+                    self.add_edge_by_id(pytorch_id(target_torch_node), pytorch_id(torch_node))
 
         for node in self.nodes.values():
             if len(self.outgoing(node)) == 0:
