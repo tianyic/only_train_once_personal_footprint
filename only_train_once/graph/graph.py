@@ -300,9 +300,7 @@ class Graph():
         # Each node prunes redundancy depending on incoming or dependent CC.
         for cc in self.connected_components.values():
             if cc.is_auxilary():
-                # print(cc)
                 for name in cc.onnx_params:
-                    # print(name)
                     node = self.params_to_nodes[name][0]
                     numpy_param = onnx.numpy_helper.to_array(self.params_onnx[name])
                     pruned_onnx_param = numpy_param[cc.non_zero_group_idxes, ...]
