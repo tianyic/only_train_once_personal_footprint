@@ -1,4 +1,4 @@
-onnx>=1.12.*,<1.14
-numpy>=1.22.*
-graphviz>=0.20
-pydot>=1.4
+numpy
+graphviz
+pydot
+onnx
