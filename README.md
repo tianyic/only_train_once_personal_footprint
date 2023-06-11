@@ -15,11 +15,15 @@ This repository is the Pytorch implementation of Only Train Once (OTO). OTO is a
 - Eliminating `onnx` dependancy to produce compressed model in `torch` format. 
 - Developing OTO onto **LLM**. 
 
+Therefore, please expect slow library update during this period. 
+
+The OTOv3 library (the first automatic NAS framework given general super-network) will be released afterwards. 
+
 ## Publications
 
 Please find our series of works.
 
-- [Towards Automatic Neural Architecture Search within General Super-Networks](https://arxiv.org/abs/2305.18030) preprint. 
+- [OTOv3: Towards Automatic Neural Architecture Search within General Super-Networks](https://arxiv.org/abs/2305.18030) preprint. 
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
 - [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021 .
 
