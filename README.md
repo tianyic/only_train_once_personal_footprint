@@ -17,7 +17,7 @@ This repository is the Pytorch implementation of Only Train Once (OTO). OTO is a
 
 Therefore, please expect slow library update during this period. 
 
-The OTOv3 library (the first automatic NAS framework given general super-network) will be released afterwards. 
+The OTOv3 library (**the first automatic NAS framework given general super-network**) will be released afterwards. 
 
 ## Publications
 
