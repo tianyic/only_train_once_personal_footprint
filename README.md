@@ -10,10 +10,10 @@ This repository is the Pytorch implementation of Only Train Once (OTO). OTO is a
 
 ## Working Items.
 
-NOTE: We are working on 
+**NOTE**: We are working on 
 
-- Eliminating onnx dependancy to produce compressed model in `torch` format. 
-- Developing OTO onto LLM. 
+- Eliminating `onnx` dependancy to produce compressed model in `torch` format. 
+- Developing OTO onto **LLM**. 
 
 ## Publications
 
