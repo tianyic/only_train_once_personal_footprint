@@ -25,7 +25,7 @@ def check_accuracy(model, testloader, two_input=False):
     model = model.eval()
     device = next(model.parameters()).device
     with torch.no_grad():
-        for X, y in tqdm(testloader):
+        for X, y in testloader:
             X = X.to(device)
             y = y.to(device)
             if two_input:

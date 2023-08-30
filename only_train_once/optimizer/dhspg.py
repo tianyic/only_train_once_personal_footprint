@@ -14,8 +14,10 @@ from .hyperparameter import DEFAULT_OPT_PARAMS
 
 class DHSPG(Optimizer):
 
-    def __init__(self, params, variant='sgd', lr=required, lmbda=None, lmbda_amplify=None, hat_lmbda_coeff=None, epsilon=0.0, first_momentum=None, second_momentum=None, dampening=None, weight_decay=None, 
-                 target_group_sparsity=0.5, tolerance_group_sparsity=0.05, start_pruning_steps=0, partition_step=None, half_space_project_steps=None, warm_up_steps=0, group_divisible=1, fixed_zero_groups=True):
+    def __init__(self, params, variant='sgd', lr=required, lmbda=None, lmbda_amplify=None, hat_lmbda_coeff=None, epsilon=0.0, \
+                first_momentum=None, second_momentum=None, dampening=None, weight_decay=None, weight_decay_type='l2_norm', \
+                target_group_sparsity=0.5, tolerance_group_sparsity=0.05, start_pruning_steps=0, partition_step=None, \
+                half_space_project_steps=None, warm_up_steps=0, group_divisible=1, fixed_zero_groups=True):
         if lr is not required and lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
 
@@ -49,6 +51,8 @@ class DHSPG(Optimizer):
         self.x_norm_g_np_all = 0.0
         self.num_groups_g_p_all = 0
         self.num_groups_g_np_all = 0
+
+        self.weight_decay_type = weight_decay_type
 
         defaults = dict(lr=lr, lmbda=lmbda, lmbda_amplify=lmbda_amplify, hat_lmbda_coeff=hat_lmbda_coeff, epsilon=epsilon,\
                         weight_decay=weight_decay, first_momentum=first_momentum, second_momentum=second_momentum, \
@@ -311,10 +315,13 @@ class DHSPG(Optimizer):
                 flatten_grad = torch.cat(grads, dim = 1)
                 flatten_hat_x = flatten_x - group['lr'] * flatten_grad
 
-                if group['weight_decay'] is not None and group['variant'] == 'adamw':
-                    flatten_hat_x = flatten_hat_x - group['lr'] * group['weight_decay'] * flatten_x
-                
                 flatten_x_norm = torch.norm(flatten_x, p=2, dim=1)
+                if group['weight_decay'] is not None and group['variant'] == 'adamw':
+                    if self.weight_decay_type == 'l2_norm':
+                        flatten_hat_x = flatten_hat_x - group['lr'] * group['weight_decay'] * flatten_x
+                    elif self.weight_decay_type == 'l1_norm':
+                        flatten_hat_x = flatten_hat_x - group['lr'] * group['weight_decay'] * flatten_x / (flatten_x_norm + self.safe_guard).unsqueeze(1)
+                
                 # If some groups needs to penalize magnitude    
                 if group['num_groups_g_p'] > 0 and not self.reach_target_group_sparsity():
                     # Use adjusted lambda to aggressively penalize magnitude 
