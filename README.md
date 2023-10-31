@@ -8,14 +8,12 @@
 
 This repository is the Pytorch implementation of Only Train Once (OTO). OTO is an automatic general DNN training and compression (via structure pruning) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
 
-## Working Items.
+## News 
 
-**NOTE**: We are working on 
+Our internal version of OTO will be released to the public by the end of this year. The internal OTO version has been 
 
 - Eliminating `onnx` dependancy to produce compressed model in `torch` format. 
 - Developing OTO onto **LLM**. 
-
-Therefore, please expect slow library update during this period. 
 
 The OTOv3 library (**perhaps the first automatic NAS framework to find optimal sub-network given general super-networks**) will be released afterwards. 
 
@@ -23,7 +21,8 @@ The OTOv3 library (**perhaps the first automatic NAS framework to find optimal s
 
 Please find our series of works.
 
-- [OTOv3: Towards Automatic Neural Architecture Search within General Super-Networks](https://arxiv.org/abs/2305.18030) preprint.
+- [LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery](https://arxiv.org/abs/2310.18356) preprint. 
+- [ASGNAS: Automated Search Space Generation Neural Architecture Search](https://arxiv.org/abs/2305.18030) preprint.
 - [An Adaptive Half-Space Projection Method for Stochastic Optimization Problems with Group Sparse Regularization](https://openreview.net/pdf?id=KBhSyBBeeO) in TMLR 2023.
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
 - [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021 .
