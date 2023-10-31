@@ -13,7 +13,7 @@ This repository is the Pytorch implementation of Only Train Once (OTO). OTO is a
 Our internal version of OTO will be released to the public by the end of this year. The internal OTO version has  
 
 - Eliminated `onnx` dependancy to produce compressed model in `torch` format. 
-- Developed OTO onto **LLM**. (See [LoRAShear]((https://arxiv.org/abs/2310.18356))
+- Developed OTO onto **LLM**. (See [LoRAShear](https://arxiv.org/abs/2310.18356))
 
 The OTOv3 library (**perhaps the first automatic NAS framework to find optimal sub-network given general super-networks**) will be released afterwards. 
 
