@@ -25,7 +25,7 @@ The OTOv3 library will be released afterwards.
 
 Please find our series of works.
 
-- [OTOv3: Automatic Architecture-Agnostic Neural Network Training and Compression from Structured Pruning to Erasing Operators]() preprint.
+- [OTOv3: Automatic Architecture-Agnostic Neural Network Training and Compression from Structured Pruning to Erasing Operators](https://arxiv.org/abs/2312.09411) preprint.
 - [LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery](https://arxiv.org/abs/2310.18356) preprint. 
 - [An Adaptive Half-Space Projection Method for Stochastic Optimization Problems with Group Sparse Regularization](https://openreview.net/pdf?id=KBhSyBBeeO) in TMLR 2023.
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
