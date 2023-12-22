@@ -2,7 +2,7 @@
 
 This visulization of pruning dependency graphs and erasing dependency graphs provides a useful tool for debugging.
 
-In the [`pruning`](https://github.com/tianyic/only_train_once/tree/main/visualization_examples/pruning) folder, we provide the generated the pruning dependency graphs for the DNNs covered in the [`sanity_check`](https://github.com/tianyic/only_train_once/tree/main/sanity_check) along with some dependency graphs met during our daily use of OTO onto various applications. 
+In the [`pruning`](https://github.com/tianyic/only_train_once/tree/main/visual_examples/pruning) folder, we provide the generated the pruning dependency graphs for the DNNs covered in the [`sanity_check`](https://github.com/tianyic/only_train_once/tree/main/sanity_check) along with some dependency graphs met during our daily use of OTO onto various applications. 
 
 ```python
 # view will try to open generated dependency graphs via some pdf reader, set up as False if running on remote servers.
