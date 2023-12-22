@@ -2,7 +2,9 @@
 
 ### Please note.
 
-Our next-version OTO library is being released. The new library has brand new designs along with a lot of major improvements. I recommend to **await for the coming release for new experiments**. The current repo will be moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication later on.
+Merry Christmas. Our next-version OTO library is being released. The new library has brand new designs along with a lot of major improvements. Please be patient for the release to be accompolished. The README will be updated accordingly in the coming days. 
+
+The previous repo has been moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication.
 
 [![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
