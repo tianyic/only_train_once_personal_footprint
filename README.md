@@ -1,5 +1,9 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
+### Please note.
+
+Our next-version OTO library will be released **before Chrismas**. The new library has brand new designs along with a lot of major improvements. I recommend to **await for the coming release for new experiments**. The current repo will be moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication later on.  
+
 [![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
 
@@ -15,14 +19,14 @@ Our internal version of OTO will be released to the public by the end of this ye
 - Eliminated `onnx` dependancy to produce compressed model in `torch` format. 
 - Developed OTO onto **LLM**. (See [LoRAShear](https://arxiv.org/abs/2310.18356))
 
-The OTOv3 library (**perhaps the first automatic NAS framework to find optimal sub-network given general super-networks**) will be released afterwards. 
+The OTOv3 library will be released afterwards. 
 
 ## Publications
 
 Please find our series of works.
 
+- [OTOv3: Automatic Architecture-Agnostic Neural Network Training and Compression from Structured Pruning to Erasing Operators](https://arxiv.org/abs/2312.09411) preprint.
 - [LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery](https://arxiv.org/abs/2310.18356) preprint. 
-- [ASGNAS: Automated Search Space Generation Neural Architecture Search](https://arxiv.org/abs/2305.18030) preprint.
 - [An Adaptive Half-Space Projection Method for Stochastic Optimization Problems with Group Sparse Regularization](https://openreview.net/pdf?id=KBhSyBBeeO) in TMLR 2023.
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
 - [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021 .
