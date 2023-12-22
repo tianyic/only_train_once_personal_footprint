@@ -11,7 +11,7 @@ oto.visualize(view=True or False, out_dir=PATH)
 
 In the depicted dependency graphs, 
 
-- The nodes marked by the same color forms one node group. The nodes in the same node groups has dependency that needs to pruned together. 
+- The nodes marked by the same color form one node group. The nodes in the same node group have dependency that need to be pruned together. 
 
 - One node group is **prunable** if it is filled by solid color.
 
