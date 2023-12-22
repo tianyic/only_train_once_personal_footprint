@@ -41,17 +41,12 @@ def automated_pruning_compression(oto_graph, model, merge_lora_to_base, unmerge_
     oto_graph.set_pruning_redundant_idxes()
 
     # First pass conduct out-channel pruning
-    print("Prune along out dim")
     pruned_out_dim_modules = set()
     for node_group in oto_graph.node_groups.values():
         if not node_group.is_prunable and not node_group.is_auxiliary:
             continue
         node_group.prune_out_dim(global_skip_modules=pruned_out_dim_modules)
         pruned_out_dim_modules = pruned_out_dim_modules.union(node_group.get_modules())
-
-    print("\nModel parameteres after prune out channels")
-    for name, param in model.named_parameters():
-        print(name, param.shape)
 
     # Second pass conduct in-channel pruning
     def find_incoming_node_group_stem_node(graph, node, src_ng, visited, incoming_node_groups, incoming_stem_node_ids):
@@ -66,41 +61,25 @@ def automated_pruning_compression(oto_graph, model, merge_lora_to_base, unmerge_
             if not visited[node_in.id]:                    
                 find_incoming_node_group_stem_node(graph, node_in, src_ng, visited, incoming_node_groups, incoming_stem_node_ids)
     
-    print("\n\nPrune via in-channel dim")
     pruned_in_dim_modules = set()
-    # debug_node_ids = ['node-317', 'node-638', 'node-1280', 'node-1494', 'node-745']
-    debug_node_ids = ['node-264']
 
     verbose = False
     for node_group in oto_graph.node_groups.values():
         for node in node_group.nodes.values():
-            verbose = True if node.id in debug_node_ids else False
-            if verbose:
-                print("Node id", node.id, "verbose", node_group.id)
             if node.pruned_status['in_dim']:
-                if verbose:
-                    print(node.id, "have been pruned in.")
                 continue
             
             if node.op.module in pruned_in_dim_modules:
-                if verbose:
-                    print(type(node_group), type(node_group).__name__)
-                    print("module has been pruned in")
                 continue
 
             if not hasattr(node.op, 'prune_in_dim'):
-                if verbose:
-                    print(type(node_group), type(node_group).__name__)
-                    print("module has not prune_in_dim")
                 continue
 
             incoming_node_groups = set()
             incoming_stem_nodes = set()
             
-            find_incoming_node_group_stem_node(oto_graph, node, node_group, oto_graph.visited_dict(), incoming_node_groups, incoming_stem_nodes)
-            if verbose:
-                print("incoming_node_groups: ", incoming_node_groups)
-                print("incoming_stem_nodes: ", incoming_stem_nodes)
+            find_incoming_node_group_stem_node(oto_graph, node, node_group, oto_graph.visited_dict(), \
+                                               incoming_node_groups, incoming_stem_nodes)
                 
             in_channel_pruned_idxes = None
             if len(incoming_stem_nodes) > 0:
@@ -124,11 +103,6 @@ def automated_pruning_compression(oto_graph, model, merge_lora_to_base, unmerge_
             if in_channel_pruned_idxes is None:
                 continue
             
-            if verbose:
-                print(incoming_ng)
-                print(in_channel_pruned_idxes, len(in_channel_pruned_idxes))
-                print(node.id, node.param_names, node.pruned_status['in_dim'], node.op.is_basic)
-
             if hasattr(incoming_ng, 'op'):
                 num_heads = 1
                 head_dim = 1
@@ -151,24 +125,12 @@ def automated_pruning_compression(oto_graph, model, merge_lora_to_base, unmerge_
                 in_channel_pruned_idxes = in_channel_pruned_idxes_refined
             
             if not node.pruned_status['in_dim']:
-                if verbose:
-                    print(type(node.op), node.param_names)
-                    print(node.op.module)
-                    print(node.param_names)
-                    print(node.id)
                 node.op.prune_in_dim(pruned_idxes=in_channel_pruned_idxes, param_names=node.param_names, verbose=verbose)
                 node.pruned_status['in_dim'] = True
                 # Skip composed node group since such groups may contain multiple nodes correspond to the same module 
                 if node.op.is_basic and not node_group.contain_lora():
                     pruned_in_dim_modules.add(node.op.module)
-                if verbose:
-                    print(node.op.module)
                 
-    print("Model parameteres after prune in channels")
-    for name, param in model.named_parameters():
-        print(name, param.shape)
-
-    # exit()
     if merge_lora_to_base:
         if hasattr(model, 'merge_and_unload'):
             model = model.merge_and_unload()
