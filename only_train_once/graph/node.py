@@ -1,100 +1,74 @@
 import numpy as np
-import os
-import sys
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
+    
+class Node:
+    def __init__(self, id=None, op_name="", op=None, inputs=[], outputs=[], param_names=[]):
+        super().__init__()
+        self.id = id    
+        self.op = op
+        self.op_name = op_name
+        self.inputs = ['node-' + str(i) for i in inputs]
+        self.outputs = ['node-' + str(o) for o in outputs]
+        self.param_names = param_names
+        self.node_group_ids = list()
+        self.pruned_status = {
+            "out_dim": False,
+            "in_dim": False
+        }
 
-from operation.operator import Operator
-
-class Node():
-    """Represents a framework-agnostic neural network layer in a directed graph."""
-
-    def __init__(self, id, op, op_params=None, params=[], inputs=[], outputs=[], output_shape=[]):
-        """
-        id: unique ID for the layer that doesn't repeat in the computation graph.
-        name: Name to display
-        op: Framework-agnostic operation .
-        """
-        self.id = id
-        self.connected_components = dict() # the connected component id that it belongs to.
-        if isinstance(op, Operator):
-            self.op = op
-        else:
-            self.op = Operator(name=op, params=op_params)
-        
-        self.inputs = ['out-' + str(i) for i in inputs]
-        self.outputs = ['out-' + str(o) for o in outputs]
-        self.params = params    
-        self.output_shape = output_shape
-        self.input_shape = []
-        self.op_params = op_params if op_params else {}
-        self._skip_pattern_search = False
-        
-    @property
-    def cc_id(self):
-        return list(self.connected_components.keys())[0]
-
+    def __repr__(self) -> str:
+        return f"Node id: {self.id}, op_name: {self.op_name}, param_names: {self.param_names}"
+    
     @property
     def title(self):
+        if not self.op:
+            return self.op_name
         # Default
-        title = self.op.name
-        if "kernel_shape" in self.op_params:
+        title = (self.op_name + '-' + self.op._type) if self.op_name != self.op._type else self.op._type
+        if "kernel_shape" in self.op.cfg_params:
             # Kernel
-            kernel = self.op_params["kernel_shape"]
+            kernel = self.op.cfg_params["kernel_shape"]
             title += "x".join(map(str, kernel))
-        if "stride" in self.op_params:
-            stride = self.op_params["stride"]
+        if "stride" in self.op.cfg_params:
+            stride = self.op.cfg_params["stride"]
             if np.unique(stride).size == 1:
                 stride = stride[0]
             if stride != 1:
                 title += "/s{}".format(str(stride))
         return title
+    
+    def is_stem(self):
+        if self.op is not None:
+            if self.op.is_basic:
+                return self.op.is_stem
+            else:
+                return self.is_conv() or self.is_convtranspose() or self.is_linear()
+        else:
+            return False
 
-    def __repr__(self):
-        args = (self.op, self.id, self.title, self.inputs, self.outputs)
-        f = "<Node: op: {}, id: {}, title: {}, inputs: {}, outputs: {}"
-        if self.params:
-            args += (str(self.params),)
-            f += ", params: {:}"
-        if self.op_params:
-            args += (str(self.op_params),)
-            f += ", op_params: {:}"
-        if self.output_shape:
-            args += (str(self.output_shape),)
-            f += ", output_shape: {:}"
-        if self.input_shape:
-            args += (str(self.input_shape),)
-            f += ", input_shape: {:}"
-        f += ">"
-        return f.format(*args)
+    def is_conv(self):
+        return self.op_name == "Conv" or self.op_name == 'conv'
 
+    def is_convtranspose(self):
+        return self.op_name == "ConvTranspose" or self.op_name == 'convtranspose'
+    
+    def is_linear(self):
+        return self.op_name == "Linear" or self.op_name == 'linear' \
+            or self.op_name == "Gemm" or self.op_name == "gemm"
+    
     def is_concat(self, axis=None):
         # Check if concat at first
-        _is_concat = self.op.name == "Concat" or self.op.name == 'concat'
+        _is_concat = self.op_name == "Concat" or self.op_name == 'concat'
         if axis == None:
             return _is_concat
         # Check if axis match
-        if _is_concat:
-            if 'axis' in self.op_params:
-                if self.op_params['axis'] == axis:
-                    return True
-                else:
-                    return False
+        if _is_concat and hasattr(self.op, 'cfg_params'):
+            if 'axis' in self.op.cfg_params:
+                return True if self.op.cfg_params['axis'] == axis else False
             else:
                 return False
         return _is_concat
 
-    def is_conv(self):
-        return self.op.name == "Conv" or self.op.name == 'conv'
+    def is_dummy(self):
+        return True if self.id == 'dummy_input' or self.id == 'dummy_output' else False
 
-    def is_linear(self):
-        return self.op.name == "Linear" or self.op.name == 'linear' \
-            or self.op.name == "Gemm" or self.op.name == "gemm"
-
-    def is_stem(self):
-        return self.op.type == "Stem" or self.op.type == "stem"
-
-    def is_zero_invariant(self):
-        return self.op.zero_invariant
     

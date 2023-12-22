@@ -1,15 +1,7 @@
 import imp
 import re
-import copy
 
 from . import ge
-import os
-import sys
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
-
-# from graph.node import Node
 
 class Rename():
     def __init__(self, op=None, name=None, to=None):
@@ -23,50 +15,49 @@ class Rename():
     def apply(self, graph):
         for i, node in enumerate(graph.nodes.values()):
             if self.op:
-                node.op.name = self.op.sub(self.to, node.op.name)
+                node.op_name = self.op.sub(self.to, node.op_name)
             if self.name is None:
-                node.name = str(node.op.name)
+                node.op_name = str(node.op_name)
             else:
-                node.name = self.name.sub(self.to, node.name)
+                node.op_name = self.name.sub(self.to, node.op_name)
 
+class Fold():
+    def __init__(self, pattern, to, name=None):
+        # TODO: validate that op and name are valid
+        self.pattern = ge.GEParser(pattern).parse()
+        self.to = to
+        self.name = name
 
-# class Fold():
-#     def __init__(self, pattern, to, name=None):
-#         # TODO: validate that op and name are valid
-#         self.pattern = ge.GEParser(pattern).parse()
-#         self.to = to
-#         self.name = name
+    def apply(self, graph):     
+        while True:
+            matches, _ = graph.search(self.pattern)
+            if not matches:
+                break
 
-#     def apply(self, graph):     
-#         while True:
-#             matches, _ = graph.search(self.pattern)
-#             if not matches:
-#                 break
-
-#             # Replace pattern with new node
-#             if self.to == "__first__":
-#                 combo = matches[0]
-#             elif self.to == "__last__":
-#                 combo = matches[-1]
-#             else:
-#                 # find the most bottom child
-#                 outputs = set()
-#                 match_ids = [node.id for node in matches]
-#                 for match_node in matches:
-#                     for outgoing_node in graph.outgoing(match_node):
-#                         if outgoing_node.id not in match_ids:
-#                             outputs.add(outgoing_node)
-#                 # combine operators
-#                 combo_op = matches[0].op
-#                 for i in range(1, len(matches)):
-#                     combo_op += matches[i].op
-#                 combo_op.name = self.to or self.pattern
-#                 combo = Node(id=graph.sequence_id(),
-#                              op=combo_op,
-#                              output_shape=matches[-1].output_shape,
-#                              outputs = list(outputs)) # TODO, check bugs
-#                 combo._caption = "/".join(filter(None, [l.caption for l in matches]))
-#             graph.replace(matches, combo)
+            # Replace pattern with new node
+            if self.to == "__first__":
+                combo = matches[0]
+            elif self.to == "__last__":
+                combo = matches[-1]
+            else:
+                # find the most bottom child
+                outputs = set()
+                match_ids = [node.id for node in matches]
+                for match_node in matches:
+                    for outgoing_node in graph.outgoing(match_node):
+                        if outgoing_node.id not in match_ids:
+                            outputs.add(outgoing_node)
+                # combine operators
+                combo_op = matches[0].op
+                for i in range(1, len(matches)):
+                    combo_op += matches[i].op
+                combo_op.name = self.to or self.pattern
+                combo = Node(id=graph.sequence_id(),
+                             op=combo_op,
+                             output_shape=matches[-1].output_shape,
+                             outputs = list(outputs)) # TODO, check bugs
+                combo._caption = "/".join(filter(None, [l.caption for l in matches]))
+            graph.replace(matches, combo)
 
 
 class ConvBNFuse():

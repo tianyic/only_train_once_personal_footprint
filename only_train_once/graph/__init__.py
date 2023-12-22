@@ -1,3 +1,3 @@
 from .graph import *
-from .connected_component import *
+from .node_group import *
 from .node import *

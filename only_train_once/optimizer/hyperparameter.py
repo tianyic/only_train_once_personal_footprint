@@ -31,3 +31,5 @@ DEFAULT_OPT_PARAMS = {
         "hat_lmbda_coeff": 1e3
     }
 }
+
+SUPPORT_GRADIENT_ESTIMATES = ['sgd', 'adam', 'adamw']
