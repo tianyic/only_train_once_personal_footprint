@@ -1,37 +1,28 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
+[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.**shields**.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
+
 ### Please note.
 
 Merry Christmas. Our next-version OTO library is being released. The new library has brand new designs along with a lot of major improvements. Please be patient for the release to be accompolished. The README will be updated accordingly in the coming days. 
 
 The previous repo has been moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication.
 
-[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
-
-
 ![oto_overview](https://user-images.githubusercontent.com/8930611/230513048-e07b09a2-b29b-49ad-a47f-52630337ab2a.png)
 
 
-This repository is the Pytorch implementation of Only Train Once (OTO). OTO is an automatic general DNN training and compression (via structure pruning) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
-
-## News 
-
-Our internal version of OTO will be released to the public by the end of this year. The internal OTO version has  
-
-- Eliminated `onnx` dependancy to produce compressed model in `torch` format. 
-- Developed OTO onto **LLM**. (See [LoRAShear](https://arxiv.org/abs/2310.18356))
-
-The OTOv3 library will be released afterwards. 
+This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an <span style="color:LimeGreen">automatic</span>, <span style="color:LightSkyBlue">architecture-agnostic</span> DNN <span style="color:Orange">training</span> and <span style="color:Violet">compression</span> (via <span style="color:CornflowerBlue">structure pruning</span> and <span style="color:DarkGoldenRod">erasing</span> operators) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
 
 ## Publications
 
-Please find our series of works.
+Please find our series of works and [bibtexs](https://github.com/tianyic/only_train_once?tab=readme-ov-file#citation) for kind citations. 
 
 - [OTOv3: Automatic Architecture-Agnostic Neural Network Training and Compression from Structured Pruning to Erasing Operators](https://arxiv.org/abs/2312.09411) preprint.
 - [LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery](https://arxiv.org/abs/2310.18356) preprint. 
-- [An Adaptive Half-Space Projection Method for Stochastic Optimization Problems with Group Sparse Regularization](https://openreview.net/pdf?id=KBhSyBBeeO) in TMLR 2023.
+- [An Adaptive Half-Space Projection Method for Stochastic Optimization Problems with Group Sparse Regularization](https://openreview.net/pdf?id=KBhSyBBeeO) in TMLR 2023.  
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
 - [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021 .
+
 
 <img width="867" alt="oto_vs_others" src="https://user-images.githubusercontent.com/8930611/224573845-8789c707-db2d-4ba7-9240-f457fddf4359.png">
 
@@ -132,7 +123,32 @@ We greatly appreciate the contributions from our open-source community to make D
 
 If you find the repo useful, please kindly star this repository and cite our papers:
 
-```
+```bibtex
+For OTOv3 preprint
+@article{chen2023otov3,
+  title={OTOv3: Automatic Architecture-Agnostic Neural Network Training and Compression from Structured Pruning to Erasing Operators},
+  author={Chen, Tianyi and Ding, Tianyu and Zhu, Zhihui and Chen, Zeyu and Wu, HsiangTao and Zharkov, Ilya and Liang, Luming},
+  journal={arXiv preprint arXiv:2312.09411},
+  year={2023}
+}
+
+For LoRAShear preprint
+@article{chen2023lorashear,
+  title={LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery},
+  author={Chen, Tianyi and Ding, Tianyu and Yadav, Badal and Zharkov, Ilya and Liang, Luming},
+  journal={arXiv preprint arXiv:2310.18356},
+  year={2023}
+}
+
+For AdaHSPG+ publication in TMLR (theoretical optimization paper)
+@article{dai2023adaptive,
+  title={An adaptive half-space projection method for stochastic optimization problems with group sparse regularization},
+  author={Dai, Yutong and Chen, Tianyi and Wang, Guanyi and Robinson, Daniel P},
+  journal={Transactions on machine learning research},
+  year={2023}
+}
+
+For OTOv2 publication in ICLR 2023
 @inproceedings{chen2023otov2,
   title={OTOv2: Automatic, Generic, User-Friendly},
   author={Chen, Tianyi and Liang, Luming and Tianyu, DING and Zhu, Zhihui and Zharkov, Ilya},
@@ -140,6 +156,7 @@ If you find the repo useful, please kindly star this repository and cite our pap
   year={2023}
 }
 
+For OTOv1 publication in NeurIPS 2021
 @inproceedings{chen2021only,
   title={Only Train Once: A One-Shot Neural Network Training And Pruning Framework},
   author={Chen, Tianyi and Ji, Bo and Tianyu, DING and Fang, Biyi and Wang, Guanyi and Zhu, Zhihui and Liang, Luming and Shi, Yixin and Yi, Sheng and Tu, Xiao},
