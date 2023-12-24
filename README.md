@@ -2,9 +2,6 @@
 
 [![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![Operator-pruning-bage](https://img.shields.io/badge/Operator-pruning-green)](#) [![Operator-erasing-bage](https://img.shields.io/badge/Operator-erasing-CornflowerBlue)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
-### Please note.
-
-The previous OTOv2 repo has been moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication.
 
 ![oto_overview](https://github.com/tianyic/only_train_once/assets/8930611/131bd6ba-3f94-4b46-8398-074ae311ccf0)
 
@@ -106,16 +103,16 @@ The [`visual_examples`](./visual_examples) provides the visualization of pruning
 
 - Release refactorized DHSPG and LHSPG.
 
-- Release the full pipeline of LoRAShear (upon commercial administration).
+- Release the full pipeline of LoRAShear (upon business administration).
 
-- Provide more tutorials to cover the experiments in OTOv3 pruning mode. 
+- Provide more tutorials to cover the experiments in the pruning mode. Main experiments in OTOv2 can be found at [otov2_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup/tutorials).
   
 - Release official erasing mode after the review process of OTOv3.
 
 - Provide documentations of the OTO API.
 
 
-## Welcome Contributions
+## Welcome Contribution
 
 We would greatly appreciate the contributions in any form, such as bug fixes, new features and new tutorials, from our open-source community. 
 
@@ -123,8 +120,12 @@ We are humble to provide benefits for the AI community. We look forward to worki
 
 ## Open for collabration.
 
-Meanwhile, we are open to collabrations. Feel free to reach out <tiachen@microsoft.com> if have any interesting idea. 
+We are open and happy for collabrations. Feel free to reach out <tiachen@microsoft.com> if have any interesting idea.
 
+
+## Legacy OTOv2 repository
+
+The previous OTOv2 repo has been moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication.
 
 ## Citation
 
