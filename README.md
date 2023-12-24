@@ -4,9 +4,7 @@
 
 ### Please note.
 
-Merry Christmas. Our next-version OTO library is being released. The new library has brand new designs along with a lot of major improvements. Please be patient for the release to be accompolished. The README will be updated accordingly in the coming days. 
-
-The previous repo has been moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication.
+The previous OTOv2 repo has been moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication.
 
 ![oto_overview](https://github.com/tianyic/only_train_once/assets/8930611/131bd6ba-3f94-4b46-8398-074ae311ccf0)
 
@@ -38,7 +36,7 @@ git clone https://github.com/tianyic/only_train_once.git
 
 ## Quick Start
 
-We provide an example of OTO framework usage. More explained details can be found in [tutorals](./tutorials/).
+We provide an example of OTO framework usage. More explained details can be found in [tutorials](./tutorials/).
 
 ### Minimal usage example. 
 
@@ -76,8 +74,9 @@ oto.construct_subnet(out_dir='./')
 ## How the pruning mode in OTO works.
 
 - **Pruning Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN to build a pruning dependency graph. Then OTO partitions DNN's trainable variables into so-called Pruning Zero-Invariant Groups (PZIGs). PZIG describes a class of pruning minimally removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together.
-![demonet_dependency_graph_prune](https://github.com/tianyic/only_train_once/assets/8930611/f1100163-4735-4801-a6ed-ccfc326644c6)
-![pzigs](https://github.com/tianyic/only_train_once/assets/8930611/b095643c-cb07-4f17-bbbc-c245f2c0cbb4)
+![zig_partition](https://user-images.githubusercontent.com/8930611/224582957-d3955a50-2abc-44b7-b134-1ba0075ca85f.gif)
+<!-- ![demonet_dependency_graph_prune](https://github.com/tianyic/only_train_once/assets/8930611/f1100163-4735-4801-a6ed-ccfc326644c6)
+![pzigs](https://github.com/tianyic/only_train_once/assets/8930611/b095643c-cb07-4f17-bbbc-c245f2c0cbb4) -->
 
 
 - **Hybrid Structured Sparse Optimizer.** A structured sparsity optimization problem is formulated. A hybrid structured sparse optimizer, including HESSO, DHSPG, LSHPG, is then employed to find out which PZIGs are redundant, and which PZIGs are important for the model prediction. The selected hybrid optimizer explores group sparsity more reliably and typically achieves higher generalization performance than other sparse optimizers.
@@ -87,33 +86,45 @@ oto.construct_subnet(out_dir='./')
 - **Construct pruned model.** The structures corresponding to redundant PZIGs (being zero) are removed to form the pruned model. Due to the property of PZIGs, **the pruned model returns the exact same output as the full model**. Therefore, **no further fine-tuning** is required. 
 <p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
 
-## More full and compressed models
+## Sanity Check
 
-Please find more full and compressed models by OTO on [checkpoints](https://drive.google.com/drive/folders/1lZ7Wsehi0hr_g8nztbAFEJIhF8C4Q8Kp?usp=share_link). The full and compressed models return the exact same outputs given the same inputs.
+The [`sanity check`](./sanity_check) provides the tests for pruning mode in OTO onto various DNNs from CNN to LLM. The pass of sanity check incidates the compliance of OTO onto target DNN. 
+```
+python sanity_check/sanity_check.py
+```
+Note that some tests require additional dependency. Comment off unnecessary tests. We highly recommend to proceed a sanity check over a new customized DNN for testing compliance.  
 
-The dependancy graphs for ZIG partition can be found at [Dependancy Graphs](https://drive.google.com/drive/folders/1XVRUEr4cUyT6xVknLF2SsYKgXBZ0gjeD?usp=share_link).
+## Visualization 
 
-## Remarks and to do list
+The [`visual_examples`](./visual_examples) provides the visualization of pruning dependency graphs and erasing dependency graphs provides a frequently used tool for employing OTO onto new unseen DNNs if meets errors.
 
-The current OTO library depends on 
+## To do list
 
-- The target model needed to be convertable into ONNX format for conducting dependancy graph construction.
+- Add more explanations into the current repository.
 
-- Please check our supported [operators](./only_train_once/operation/operators_dict.py) list if meeting some errors.
+- Release a technical report regarding the [HESSO](https://github.com/tianyic/only_train_once/blob/main/only_train_once/optimizer/hesso.py) optimizer which is not discussed yet in our [papers](https://github.com/tianyic/only_train_once?tab=readme-ov-file#publications).
 
-- The effectiveness (ultimate compression ratio and model performance) relies on the proper usage of DHSPG optimizer. Please go through our [tutorials](./tutorials/) for setup (will be kept updated).
+- Release refactorized DHSPG and LHSPG.
 
-We will routinely complete the following items.
+- Release the full pipeline of LoRAShear (upon commercial administration).
 
-- Provide more tutorials to cover more use cases and applications of OTO. 
+- Provide more tutorials to cover the experiments in OTOv3 pruning mode. 
+  
+- Release official erasing mode after the review process of OTOv3.
 
 - Provide documentations of the OTO API.
 
-- Optimize the dependancy list.
 
 ## Welcome Contributions
 
-We greatly appreciate the contributions from our open-source community to make DNN's training and compression to be more automatic and convinient. 
+We would greatly appreciate the contributions in any form, such as bug fixes, new features and new tutorials, from our open-source community. 
+
+We are humble to provide benefits for the AI community. We look forward to working with the community together to make DNN's training and compression to be more automatic and convinient. 
+
+## Open for collabration.
+
+Meanwhile, we are open to collabrations. Feel free to reach out <tiachen@microsoft.com> if have any interesting idea. 
+
 
 ## Citation
 
