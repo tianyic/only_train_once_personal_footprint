@@ -44,7 +44,7 @@ We provide an example of OTO framework usage. More explained details can be foun
 
 ```python
 import torch
-from backends import densenet121
+from sanity_check.backends import densenet121
 from only_train_once import OTO
 
 # Create OTO instance
@@ -73,17 +73,17 @@ for epoch in range(max_epoch):
 oto.construct_subnet(out_dir='./')
 ```
 
-## How OTO works.
+## How the pruning mode in OTO works.
 
-- **Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN and partition DNN's trainable variables into so-called Zero-Invariant Groups (ZIGs). ZIG is a class of minimal removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together. 
+- **Pruning Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN to build a pruning dependency graph. Then OTO partitions DNN's trainable variables into so-called Pruning Zero-Invariant Groups (PZIGs). PZIG describes a class of pruning minimally removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together. 
 ![zig_partition](https://user-images.githubusercontent.com/8930611/224582957-d3955a50-2abc-44b7-b134-1ba0075ca85f.gif)
 
 
-- **Dual Half-Space Project Gradient (DHSPG).** A structured sparsity optimization problem is formulated. DHSPG is then employed to find out which ZIGs are redundant, and which ZIGs are important for the model prediction. DHSPG explores group sparsity more reliably and typically achieves higher generalization performance than other optimizers.
+- **Hybrid Structured Sparse Optimizer.** A structured sparsity optimization problem is formulated. A hybrid structured sparse optimizer, including HESSO, DHSPG, LSHPG, is then employed to find out which PZIGs are redundant, and which PZIGs are important for the model prediction. The selected hybrid optimizer explores group sparsity more reliably and typically achieves higher generalization performance than other sparse optimizers.
 ![dhspg](https://user-images.githubusercontent.com/8930611/224577550-3814f6c9-0eaf-4d1c-a978-2251b68c2a1a.png)
 
 
-- **Construct compressed model.** The structures corresponding to redundant ZIGs (being zero) are removed to form the compressed model. Due to the property of ZIGs, **the compressed model returns the exact same output as the full model**. Therefore, **no further fine-tuning** is required. 
+- **Construct pruned model.** The structures corresponding to redundant PZIGs (being zero) are removed to form the pruned model. Due to the property of PZIGs, **the pruned model returns the exact same output as the full model**. Therefore, **no further fine-tuning** is required. 
 <p align="center"><img width="400" alt="comp_construct" src="https://user-images.githubusercontent.com/8930611/224575936-27594b36-1d1d-4daa-9f07-d125dd6e195e.png"></p> 
 
 ## More full and compressed models
