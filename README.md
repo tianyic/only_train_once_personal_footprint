@@ -1,6 +1,6 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
-[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
+[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![Operator-pruning-bage](https://img.shields.io/badge/Operator-pruning-green)](#) [![Operator-erasing-bage](https://img.shields.io/badge/Operator-erasing-CornflowerBlue)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
 ### Please note.
 
@@ -10,7 +10,7 @@ The previous repo has been moved into [legacy_branch](https://github.com/tianyic
 
 ![oto_overview](https://github.com/tianyic/only_train_once/assets/8930611/131bd6ba-3f94-4b46-8398-074ae311ccf0)
 
-This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an <span style="color:LimeGreen">automatic</span>, <span style="color:LightSkyBlue">architecture-agnostic</span> DNN <span style="color:Orange">training</span> and <span style="color:Violet">compression</span> (via <span style="color:CornflowerBlue">structure pruning</span> and <span style="color:DarkGoldenRod">erasing</span> operators) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
+This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an $\color{LimeGreen}{\textbf{automatic}}$, $\color{LightCoral}{\textbf{architecture-agnostic}}$ DNN $\color{Orange}{\textbf{training}}$ and $\color{Violet}{\textbf{compression}}$ (via $\color{CornflowerBlue}{\textbf{structure pruning}}$ and $\color{DarkGoldenRod}{\textbf{erasing}}$ operators) framework. By OTO, users could train a general DNN either from scratch or a pretrained checkpoint to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without fine-tuning). 
 
 ## Publications
 
@@ -26,7 +26,7 @@ Please find our series of works and [bibtexs](https://github.com/tianyic/only_tr
 
 ## Installation
 
-This package runs under PyTorch 1.9+ except 1.12 (recommend 1.11 and 1.13). Use `pip` or `git clone` to install.
+We recommend to run the framework under `pytorch>=2.0`. Use `pip` or `git clone` to install.
 
 ```bash
 pip install only_train_once
