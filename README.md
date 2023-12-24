@@ -75,8 +75,9 @@ oto.construct_subnet(out_dir='./')
 
 ## How the pruning mode in OTO works.
 
-- **Pruning Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN to build a pruning dependency graph. Then OTO partitions DNN's trainable variables into so-called Pruning Zero-Invariant Groups (PZIGs). PZIG describes a class of pruning minimally removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together. 
-![zig_partition](https://user-images.githubusercontent.com/8930611/224582957-d3955a50-2abc-44b7-b134-1ba0075ca85f.gif)
+- **Pruning Zero-Invariant Group Partition.** OTO at first automatically figures out the dependancy inside the target DNN to build a pruning dependency graph. Then OTO partitions DNN's trainable variables into so-called Pruning Zero-Invariant Groups (PZIGs). PZIG describes a class of pruning minimally removal structure of DNN, or can be largely interpreted as the minimal group of variables that must be pruned together.
+![demonet_dependency_graph_prune](https://github.com/tianyic/only_train_once/assets/8930611/f1100163-4735-4801-a6ed-ccfc326644c6)
+![pzigs](https://github.com/tianyic/only_train_once/assets/8930611/b095643c-cb07-4f17-bbbc-c245f2c0cbb4)
 
 
 - **Hybrid Structured Sparse Optimizer.** A structured sparsity optimization problem is formulated. A hybrid structured sparse optimizer, including HESSO, DHSPG, LSHPG, is then employed to find out which PZIGs are redundant, and which PZIGs are important for the model prediction. The selected hybrid optimizer explores group sparsity more reliably and typically achieves higher generalization performance than other sparse optimizers.
