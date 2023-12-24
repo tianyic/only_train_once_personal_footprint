@@ -1,6 +1,6 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
-[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.**shields**.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
+[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
 ### Please note.
 
@@ -21,7 +21,7 @@ Please find our series of works and [bibtexs](https://github.com/tianyic/only_tr
 - [LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery](https://arxiv.org/abs/2310.18356) preprint. 
 - [An Adaptive Half-Space Projection Method for Stochastic Optimization Problems with Group Sparse Regularization](https://openreview.net/pdf?id=KBhSyBBeeO) in TMLR 2023.  
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
-- [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021 .
+- [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021.
 
 
 <img width="867" alt="oto_vs_others" src="https://user-images.githubusercontent.com/8930611/224573845-8789c707-db2d-4ba7-9240-f457fddf4359.png">
@@ -29,7 +29,7 @@ Please find our series of works and [bibtexs](https://github.com/tianyic/only_tr
 
 ## Installation
 
-This package runs under PyTorch 1.9+ except 1.12 (recommend 1.11 and 1.13). Use `pip` or `git clone` to install.
+We recommend to run the framework under `pytorch >= 2.0`
 
 ```bash
 pip install only_train_once
@@ -49,18 +49,18 @@ We provide an example of OTO framework usage. More explained details can be foun
 
 ```python
 import torch
-from backends import DemoNet
+from backends import densenet121
 from only_train_once import OTO
 
 # Create OTO instance
-model = DemoNet()
+model = densenet121()
 dummy_input = torch.zeros(1, 3, 32, 32)
 oto = OTO(model=model.cuda(), dummy_input=dummy_input.cuda())
 
-# Create DHSPG optimizer
-optimizer = oto.dhspg(lr=0.1, target_group_sparsity=0.7)
+# Create HESSO optimizer
+optimizer = oto.hesso(variant='sgd', lr=0.1, target_group_sparsity=0.7)
 
-# Train the DNN as normal via DHSPG
+# Train the DNN as normal via HESSO
 model.train()
 model.cuda()
 criterion = torch.nn.CrossEntropyLoss()
@@ -74,8 +74,8 @@ for epoch in range(max_epoch):
         f.backward()
         optimizer.step()
 
-# A DemoNet_compressed.onnx will be generated. 
-oto.compress()
+# A compressed densenet will be generated. 
+oto.construct_subnet(out_dir='./')
 ```
 
 ## How OTO works.
@@ -141,7 +141,7 @@ For LoRAShear preprint
 }
 
 For AdaHSPG+ publication in TMLR (theoretical optimization paper)
-@article{dai2023adaptive,
+@article{dai2023adahspg,
   title={An adaptive half-space projection method for stochastic optimization problems with group sparse regularization},
   author={Dai, Yutong and Chen, Tianyi and Wang, Guanyi and Robinson, Daniel P},
   journal={Transactions on machine learning research},
@@ -157,7 +157,7 @@ For OTOv2 publication in ICLR 2023
 }
 
 For OTOv1 publication in NeurIPS 2021
-@inproceedings{chen2021only,
+@inproceedings{chen2021otov1,
   title={Only Train Once: A One-Shot Neural Network Training And Pruning Framework},
   author={Chen, Tianyi and Ji, Bo and Tianyu, DING and Fang, Biyi and Wang, Guanyi and Zhu, Zhihui and Liang, Luming and Shi, Yixin and Yi, Sheng and Tu, Xiao},
   booktitle={Thirty-Fifth Conference on Neural Information Processing Systems},
