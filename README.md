@@ -1,6 +1,6 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
-[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![build-onnx-bage](https://img.shields.io/badge/build-onnx-green)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
+[![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![Operator-pruning-bage](https://img.shields.io/badge/Operator-pruning-green)](#) [![Operator-erasing-bage](https://img.shields.io/badge/Operator-erasing-CornflowerBlue)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
 ### Please note.
 
@@ -8,10 +8,9 @@ Merry Christmas. Our next-version OTO library is being released. The new library
 
 The previous repo has been moved into [legacy_branch](https://github.com/tianyic/only_train_once/tree/otov2_legacy_backup) for academic replication.
 
-![oto_overview](https://user-images.githubusercontent.com/8930611/230513048-e07b09a2-b29b-49ad-a47f-52630337ab2a.png)
+![oto_overview](https://github.com/tianyic/only_train_once/assets/8930611/131bd6ba-3f94-4b46-8398-074ae311ccf0)
 
-
-This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an <span style="color:LimeGreen">automatic</span>, <span style="color:LightSkyBlue">architecture-agnostic</span> DNN <span style="color:Orange">training</span> and <span style="color:Violet">compression</span> (via <span style="color:CornflowerBlue">structure pruning</span> and <span style="color:DarkGoldenRod">erasing</span> operators) framework. By OTO, users could train a general DNN from scratch to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without pretraining and fine-tuning). 
+This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an $\color{LimeGreen}{\textbf{automatic}}$, $\color{LightCoral}{\textbf{architecture}}$ $\color{LightCoral}{\textbf{agnostic}}$ DNN $\color{Orange}{\textbf{training}}$ and $\color{Violet}{\textbf{compression}}$ (via $\color{CornflowerBlue}{\textbf{structure pruning}}$ and $\color{DarkGoldenRod}{\textbf{erasing}}$ operators) framework. By OTO, users could train a general DNN either from scratch or a pretrained checkpoint to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without fine-tuning). 
 
 ## Publications
 
@@ -23,20 +22,16 @@ Please find our series of works and [bibtexs](https://github.com/tianyic/only_tr
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
 - [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021.
 
-
-<img width="867" alt="oto_vs_others" src="https://user-images.githubusercontent.com/8930611/224573845-8789c707-db2d-4ba7-9240-f457fddf4359.png">
-
+![oto_overview_2](https://github.com/tianyic/only_train_once/assets/8930611/ed1f8fda-d43c-4b60-a627-7ce9b2277848)
 
 ## Installation
 
-We recommend to run the framework under `pytorch >= 2.0`
+We recommend to run the framework under `pytorch>=2.0`. Use `pip` or `git clone` to install.
 
 ```bash
 pip install only_train_once
 ```
-
 or
-
 ```bash
 git clone https://github.com/tianyic/only_train_once.git
 ```
