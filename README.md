@@ -85,7 +85,7 @@ oto.construct_subnet(out_dir='./')
 
 ## Sanity Check
 
-The [`sanity check`](./sanity_check) provides the tests for pruning mode in OTO onto various DNNs from CNN to LLM. The pass of sanity check incidates the compliance of OTO onto target DNN. 
+The [`sanity check`](./sanity_check) provides the tests for pruning mode in OTO onto various DNNs from CNN to LLM. The pass of sanity check indicates the compliance of OTO onto target DNN. 
 ```
 python sanity_check/sanity_check.py
 ```
@@ -93,7 +93,7 @@ Note that some tests require additional dependency. Comment off unnecessary test
 
 ## Visualization 
 
-The [`visual_examples`](./visual_examples) provides the visualization of pruning dependency graphs and erasing dependency graphs provides a frequently used tool for employing OTO onto new unseen DNNs if meets errors.
+The [`visual_examples`](./visual_examples) provides the visualization of pruning dependency graphs and erasing dependency graphs. Visualization serves as a frequently used tool for employing OTO onto new unseen DNNs if meets errors.
 
 ## To do list
 
