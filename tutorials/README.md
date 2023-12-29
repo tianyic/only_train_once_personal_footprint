@@ -21,7 +21,7 @@ e.g., in [YOLOv5](https://github.com/tianyic/only_train_once/blob/main/sanity_ch
 
 ## Optimizer setup (Important)
 
-OTO is designed to **seamless integrate into the existing training pipeline for the full model**, which is typically reliable to achieve high performance given full model, 
+OTO is designed to **seamless integrate into the existing training pipeline for the full model**, which is typically reliable to achieve high performance given full model.
 
 We empirically recommend to set up the [**hyperparameters**](https://github.com/tianyic/only_train_once/blob/cbb3d3dccf95c383e9cddcbaf8592cf3db13817b/only_train_once/__init__.py#L47) in OTO's optimizers **exactly the same as the baseline optimizers** for performance. Please note varying optimizer setup may result in significantly different performance. Meanwhile, some applications require a longer training steps for convergence due to the weaker learning capacity of sparse model. 
 
