@@ -21,9 +21,12 @@ e.g., in [YOLOv5](https://github.com/tianyic/only_train_once/blob/main/sanity_ch
 
 ## Optimizer setup (Important)
 
-OTO is designed to **seamless integrate into the existing training pipeline for the full model**, which is typically reliable to achieve high performance given full model.
+OTO is designed to **seamlessly** integrate into your existing training pipeline for comprehensive models. This existing pipeline is typically reliable for achieving high performance with full models.
 
-We empirically recommend to set up the [**hyperparameters**](https://github.com/tianyic/only_train_once/blob/cbb3d3dccf95c383e9cddcbaf8592cf3db13817b/only_train_once/__init__.py#L47) in OTO's optimizers **exactly the same as the baseline optimizers** for performance. Please note varying optimizer setup may result in significantly different performance. Meanwhile, some applications require a longer training steps for convergence due to the weaker learning capacity of sparse model. 
+To minimize the effort in [**hyperparameters**](https://github.com/tianyic/only_train_once/blob/cbb3d3dccf95c383e9cddcbaf8592cf3db13817b/only_train_once/__init__.py#L47) tuning while ensuring optimal performance, we recommend setting the hyperparameters in OTO's optimizers identical to those in your baseline optimizers. This approach generally yields satisfactory results in DNN compression across a wide range of applications, from computer vision to natural language processing, and from academic benchmarks to real-world AI products. However, be aware that some applications might require extended training steps for convergence due to the reduced learning capacity of sparse models.
+
+It is important to note that different optimizer setups can lead to significantly varied performance outcomes. Additionally, there is potential that alternative hyperparameter configurations, differing from our baseline recommendation, could enhance performance. We suggest users with the interest and resources to experiment with different hyperparameter settings and explore these possibilities.
+
 
 ## Old tutorials 
 
