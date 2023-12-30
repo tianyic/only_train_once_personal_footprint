@@ -20,7 +20,7 @@ For example, in [YOLOv5](https://github.com/tianyic/only_train_once/blob/main/sa
 
 ## Optimizer setup (Important)
 
-OTO is designed to **seamlessly** integrate into your existing training pipeline for comprehensive models. This existing pipeline is typically reliable for achieving high performance with full models.
+OTO is designed to **seamlessly** integrate into the existing training pipeline for the full models. This existing pipeline is typically reliable for achieving high performance with full models.
 
 To minimize the effort in [**hyperparameters**](https://github.com/tianyic/only_train_once/blob/cbb3d3dccf95c383e9cddcbaf8592cf3db13817b/only_train_once/__init__.py#L47) tuning while ensuring optimal performance, we recommend setting the hyperparameters in OTO's optimizers identical to those in your baseline optimizers. This approach generally yields satisfactory results in DNN compression across a wide range of applications, from computer vision to natural language processing, and from academic benchmarks to real-world AI products. However, be aware that some applications might require extended training steps for convergence due to the reduced learning capacity of sparse models.
 
