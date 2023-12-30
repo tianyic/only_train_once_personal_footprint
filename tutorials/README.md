@@ -16,8 +16,7 @@ and produce compact subnetwork, as presented in [sanity_check](https://github.co
 ```python
 oto.mark_unprunable_by_node_ids()
 ```
-e.g., in [YOLOv5](https://github.com/tianyic/only_train_once/blob/main/sanity_check/test_yolov5.py).
-
+For example, in [YOLOv5](https://github.com/tianyic/only_train_once/blob/main/sanity_check/test_yolov5.py), we mark the node groups corresponding to detection heads as unprunable. 
 
 ## Optimizer setup (Important)
 
