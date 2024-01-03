@@ -7,6 +7,7 @@ from .demonet_weightshare_case1 import DemoNetWeightShareCase1
 from .demonet_weightshare_case2 import DemoNetWeightShareCase2
 from .demo_group_conv_case1 import DemoNetGroupConvCase1
 from .demonet_in_case3 import DemoNetInstanceNorm2DCase3
+from .demonet_in_case4 import DemoNetInstanceNorm2DCase4
 from .densenet import densenet121, densenet161, densenet169, densenet201
 from .resnet_cifar10 import resnet18_cifar10
 from .demonet_batchnorm_pruning import DemonetBatchnormPruning
