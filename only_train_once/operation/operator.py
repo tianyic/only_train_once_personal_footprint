@@ -643,17 +643,44 @@ class BertAttentionOTO(BaseSelfAttentionOTO):
                     expand_pruned_idxes.extend([i + h * self.head_dim for i in pruned_idxes])
                 leaf_op.prune_out_dim(expand_pruned_idxes)
 
+class PReLUOTO(Operator):
+    def init(self, id=None, _type=None, cfg_params=dict(), module=None):
+        super().init(id, _type, cfg_params, module)
+        self.is_stem = False
+        self.set_num_groups()
+
+    def get_param_groups(self, param_names=[]):
+        param_groups = dict()
+        param_groups['op'] = 'prelu'
+        param_groups['p_names'] = list()
+        param_groups['params'] = list()
+        param_groups['p_transform'] = list()
+        for p_name in param_names:
+            if p_name in self.name_to_param:
+                param_groups['p_names'].append(p_name)
+                param_groups['params'].append(self.name_to_param[p_name])
+                param_groups['p_transform'].append(TensorTransform.ACCESSORY)
+        return param_groups
+
+    def prune_out_dim(self, pruned_idxes=list(), **kwargs):
+        preserved_idxes = list(set(range(self.module.num_parameters)) - set(pruned_idxes))
+        preserved_idxes.sort()
+        self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 0)
+        self.module.num_parameters = self.module.num_parameters - len(pruned_idxes)
+
 BASIC_MODULES = {
     'ConvTranspose2d': ConvTranspose2dOTO,
     'Conv2d': Conv2dOTO,
     'Linear': LinearOTO,
     'BatchNorm2d': BatchNormOTO,
+    'PreLU': PReLUOTO,
     'InstanceNorm2d': InstanceNormOTO,
     'GroupNorm': GroupNormOTO,
     'Embedding': EmbeddingOTO,
     
     'LlamaRMSNorm': LayerNormOTO,
     'LayerNorm': LayerNormOTO,
+    
 }
 
 # Composed modules must contain at least two nodes with trainable variables
