@@ -667,13 +667,13 @@ class PReLUOTO(Operator):
         preserved_idxes.sort()
         self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 0)
         self.module.num_parameters = self.module.num_parameters - len(pruned_idxes)
-
+        
 BASIC_MODULES = {
     'ConvTranspose2d': ConvTranspose2dOTO,
     'Conv2d': Conv2dOTO,
     'Linear': LinearOTO,
     'BatchNorm2d': BatchNormOTO,
-    'PreLU': PReLUOTO,
+    'PReLU': PReLUOTO,
     'InstanceNorm2d': InstanceNormOTO,
     'GroupNorm': GroupNormOTO,
     'Embedding': EmbeddingOTO,

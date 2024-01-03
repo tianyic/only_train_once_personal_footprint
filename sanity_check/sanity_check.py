@@ -19,6 +19,7 @@ from test_concat_case1 import TestDemoNetConcatCase1
 from test_concat_case2 import TestDemoNetConcatCase2
 from test_convtranspose_in_case1 import TestConvTransposeInCase1
 from test_in_case3 import TestINCase3
+from test_in_case4 import TestINCase4
 from test_convtranspose_in_case2 import TestConvTransposeInCase2
 from test_weight_share_case1 import TestDemoNetWeighShareCase1
 from test_weight_share_case2 import TestDemoNetWeighShareCase2
