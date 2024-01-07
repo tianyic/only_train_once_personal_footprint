@@ -160,6 +160,7 @@ class HESSO(Optimizer):
                     group['grad_variant'].append(exp_avg_first_moment_grad / denom)
         
     def reach_target_group_sparsity(self):
+        self.curr_group_sparsity, _, self.curr_num_zero_groups = self.compute_group_sparsity_param_norm()  
         if self.curr_num_zero_groups < self.target_num_redundant_groups:
             return False
         else:
@@ -244,21 +245,24 @@ class HESSO(Optimizer):
                 self.important_idxes[group['id']] = [i for i in range(group['num_groups']) if i not in self.pruned_idxes[group['id']]]
                 group['importance_scores'] = dict()
                 
-    def step(self):   
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            loss = closure()
+              
         self.num_steps += 1   
-          
+
         # First pass to compute gradient variant via different criteria
         self.compute_grad_variant()
 
         # Partition groups into important and redundant groups  
-        if self.num_steps >= self.start_pruning_step and not self.reach_target_group_sparsity() and \
-            self.curr_pruning_period < self.pruning_periods:
+        if self.num_steps >= self.start_pruning_step and self.curr_pruning_period < self.pruning_periods:
             if (self.num_steps - self.start_pruning_step - 1) % self.pruning_period_duration == 0:
                 self.commit_redundant_idxes()
                 self.compute_importance_scores()
                 self.identify_redundant_groups()
                 self.curr_pruning_period += 1
-                
+
         # Second pass to update variables        
         t = (self.num_steps - self.start_pruning_step) % self.pruning_period_duration
         for i, group in enumerate(self.param_groups):
@@ -288,7 +292,6 @@ class HESSO(Optimizer):
                         for aux_p in aux_pg['params']:
                             if aux_p.grad is None:
                                 continue
-                            # TODO: this update seems wrong.
                             aux_p.data[offset:offset+group['num_groups'], ...] *= (self.pruning_period_duration - t - 1.0) / (self.pruning_period_duration - t)
 
             if len(self.pruned_idxes[group['id']]) > 0:
@@ -300,8 +303,7 @@ class HESSO(Optimizer):
             
         if self.num_steps >= self.start_pruning_step and t == self.pruning_period_duration - 1:
             self.commit_redundant_idxes()
-            
-        self.curr_group_sparsity, _, self.curr_num_zero_groups = self.compute_group_sparsity_param_norm()                
+
         return 
     
     def compute_group_sparsity_param_norm(self):

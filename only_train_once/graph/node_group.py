@@ -191,7 +191,7 @@ class NodeGroup(BasicNodeGroup):
         for node in self.nodes.values():
             if not node.op:
                 continue
-            if hasattr(node.op, 'prune_out_dim'):        
+            if hasattr(node.op, 'prune_out_dim'):
                 if node.op.module not in local_skip_modules and node.op.module not in global_skip_modules:
                     node.op.prune_out_dim(pruned_idxes=self.pruning_redundant_idxes, param_names=node.param_names)
                     local_skip_modules.add(node.op.module)
@@ -207,7 +207,7 @@ class NodeGroup(BasicNodeGroup):
             if len(node.param_names) == 0 or not node.op:
                 continue
             for param_name in node.param_names:
-                if 'lora_B' in param_name:
+                if 'lora_B' in param_name or 'lora_embedding_B' in param_name:
                     self.scaling = node.op.lora_scaling
                     return True
         return False
@@ -358,21 +358,20 @@ class NodeGroupComposedOp(BasicNodeGroup):
         elif len(param_groups['params']) > 0 and not self.is_auxiliary:
             norm_group = None
             for (p_name, param, p_transform) in zip(param_groups['p_names'], param_groups['params'], param_groups['p_transform']):
-                # Skip lora_A if any
-                if 'lora_A' in p_name:
+                # Skip lora_A or lora_embedding_A if any
+                if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
                     continue
                 param_transform = None
-                if p_transform != TensorTransform.MULTIHEAD:
-                    param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'])
-                else:
+                if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                     param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'], param_groups['num_heads'])
+                else:
+                    param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'])                    
 
                 if norm_group == None:
                     norm_group = torch.norm(param_transform, dim=1) ** 2
                 else:
                     norm_group += torch.norm(param_transform, dim=1) ** 2
             norm_group = torch.sqrt(norm_group)
-
             norm_group = norm_group.cpu()
 
             self.pruning_important_idxes = np.arange(self.get_num_groups())[norm_group != 0]

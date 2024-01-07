@@ -467,28 +467,37 @@ class LayerNormOTO(Operator):
             self.module.normalized_shape = tuple((len(preserved_idxes),))
             print(self.module.normalized_shape)
 
-class BaseSelfAttentionOTO(Operator):
+class BaseMultiHeadAttentionOTO(Operator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
-        self.set_attributes()
         self.is_stem = True
         self.is_basic = False
         self.out_key = 'attn_w'
         self.op_name = 'self_attention'
+        self.prune_mode = 'num_head'
+
+        assert self.prune_mode in ['head_dim', 'num_head'], "Prune_mode of mha must be either head_dim or num_head."
         
         # find the scaling parameters if loralinear
         for leaf_module in self.leaf_modules.values():
             if type(leaf_module).__name__ == 'LoraLinearOTO':
                 if hasattr(leaf_module, 'lora_scaling'):
                     self.lora_scaling = leaf_module.lora_scaling
-    
+        self.set_attributes()
+        
     def set_attributes(self):
-        self.num_heads = self.module.n_heads
+        if hasattr(self.module, 'n_heads'):
+            self.num_heads = self.module.n_heads
+        elif hasattr(self.module, 'num_heads'):
+            self.num_heads = self.module.num_heads
         self.head_dim = self.module.head_dim
-        self.num_groups = self.head_dim
+        if self.prune_mode == 'head_dim':
+            self.num_groups = self.head_dim
+        elif self.prune_mode == 'num_head':
+            self.num_groups = self.num_heads
         self.hidden_size = self.module.hidden_size
         self.num_group_divisible = 2
-
+    
     def get_param_groups(self, param_names=list(), skip_output_node=False, **kwargs):
         param_groups = dict()
         param_groups['op'] = self.op_name
@@ -514,12 +523,13 @@ class BaseSelfAttentionOTO(Operator):
                 param_groups['params'].append(param)
                 if 'lora_A' in p_name:
                     param_groups['p_transform'].append(TensorTransform.NO_PRUNE)
-                else:
-                    param_groups['p_transform'].append(TensorTransform.MULTIHEAD)
+                elif self.prune_mode == 'head_dim':
+                    param_groups['p_transform'].append(TensorTransform.MULTIHEAD_HEADDIM)
+                elif self.prune_mode == 'num_head':
+                    param_groups['p_transform'].append(TensorTransform.MULTIHEAD_NUMHEAD)
         return param_groups
     
-
-    def prune_out_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):        
+    def prune_out_dim_head_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):
         visited_modules = set()
         if len(param_names) > 0:
             for param_name in param_names:
@@ -531,7 +541,7 @@ class BaseSelfAttentionOTO(Operator):
                         leaf_op.prune_out_dim(pruned_idxes, param_names=[param_name])
                     visited_modules.add(module_name)
         elif len(param_names) == 0 and skip_output_node:
-            preserved_idxes = list(set(range(self.module.head_dim)) - set(pruned_idxes))
+            preserved_idxes = list(set(range(self.num_groups)) - set(pruned_idxes))
             preserved_idxes.sort()
             # Prune over k, q, v weights
             self.module.head_dim = self.module.head_dim - len(pruned_idxes)
@@ -543,6 +553,42 @@ class BaseSelfAttentionOTO(Operator):
                 for h in range(self.num_heads):
                     expand_pruned_idxes.extend([i + h * self.head_dim for i in pruned_idxes])
                 leaf_op.prune_out_dim(expand_pruned_idxes)
+
+    def prune_out_dim_num_head(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):
+        visited_modules = set()
+        if len(param_names) > 0:
+            for param_name in param_names:
+                for module_name in self.leaf_modules:
+                    if not param_name.startswith(module_name):
+                        continue
+                    leaf_op = self.leaf_modules[module_name]
+                    if module_name not in visited_modules:
+                        leaf_op.prune_out_dim(pruned_idxes, param_names=[param_name])
+                    visited_modules.add(module_name)
+        elif len(param_names) == 0 and skip_output_node:
+            preserved_idxes = list(set(range(self.num_groups)) - set(pruned_idxes))
+            preserved_idxes.sort()
+            # Prune over k, q, v weights
+            if hasattr(self.module, 'n_heads'):
+                self.module.n_heads = self.num_groups - len(pruned_idxes)
+            elif hasattr(self.module, 'num_heads'):
+                self.module.num_heads = self.num_groups - len(pruned_idxes)
+                
+            for module_name in self.leaf_modules:
+                if self.out_key in module_name:
+                    continue
+                leaf_op = self.leaf_modules[module_name]
+                expand_pruned_idxes = list()
+                for i in pruned_idxes:
+                    for h in range(self.head_dim):
+                        expand_pruned_idxes.append(h + i * self.head_dim)
+                leaf_op.prune_out_dim(expand_pruned_idxes)
+                
+    def prune_out_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):
+        if self.prune_mode == 'head_dim':       
+            self.prune_out_dim_head_dim(pruned_idxes, param_names, skip_output_node, **kwargs)
+        elif self.prune_mode == 'num_head':
+            self.prune_out_dim_num_head(pruned_idxes, param_names, skip_output_node, **kwargs)
         
     def prune_in_dim(self, pruned_idxes=list(), param_names=list(), **kwargs):
         visited_modules = set()
@@ -557,20 +603,13 @@ class BaseSelfAttentionOTO(Operator):
                     leaf_op.prune_in_dim(pruned_idxes, param_names=[param_name])
                 visited_modules.add(module_name)
 
-class LlamaAttentionOTO(BaseSelfAttentionOTO):
+class LlamaAttentionOTO(BaseMultiHeadAttentionOTO):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
         self.out_key = 'o_proj'
         self.op_name = 'llama_attention'
-        
-    def set_attributes(self):
-        self.num_heads = self.module.num_heads
-        self.head_dim = self.module.head_dim
-        self.num_groups = self.head_dim
-        self.hidden_size = self.module.hidden_size
-        self.num_group_divisible = 2
 
-    def prune_out_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):        
+    def prune_out_dim_head_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):        
         if len(param_names) > 0:
             visited_modules = set()
             for param_name in param_names:
@@ -585,14 +624,8 @@ class LlamaAttentionOTO(BaseSelfAttentionOTO):
             preserved_idxes = list(set(range(self.module.head_dim)) - set(pruned_idxes))
             preserved_idxes.sort()
             # Prune over k, q, v weights
-            self.module.head_dim = self.module.head_dim - len(pruned_idxes)
-            cos_cached_new = torch.nn.Parameter(torch.index_select(self.module.rotary_emb.cos_cached, 3, \
-                torch.LongTensor(preserved_idxes).to(self.module.rotary_emb.cos_cached.device)), requires_grad=False)
-            sin_cached_new = torch.nn.Parameter(torch.index_select(self.module.rotary_emb.sin_cached, 3, \
-                torch.LongTensor(preserved_idxes).to(self.module.rotary_emb.cos_cached.device)), requires_grad=False)            
+            self.module.head_dim = self.module.head_dim - len(pruned_idxes)          
             self.module.reset_rotary_emb() 
-            self.module.rotary_emb.cos_cached = cos_cached_new
-            self.module.rotary_emb.sin_cached = sin_cached_new
             
             for module_name in self.leaf_modules:
                 if self.out_key in module_name:
@@ -603,20 +636,23 @@ class LlamaAttentionOTO(BaseSelfAttentionOTO):
                     expand_pruned_idxes.extend([i + h * self.head_dim for i in pruned_idxes])
                 leaf_op.prune_out_dim(expand_pruned_idxes)
 
-class BertAttentionOTO(BaseSelfAttentionOTO):
+class BertAttentionOTO(BaseMultiHeadAttentionOTO):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
         self.out_key = 'output'
-        self.op_name = 'llama_attention'
-
+        self.op_name = 'bert_attention'
+        
     def set_attributes(self):
         self.num_heads = self.module.self.num_attention_heads
         self.head_dim = self.module.self.attention_head_size
-        self.num_groups = self.head_dim
+        if self.prune_mode == 'head_dim':
+            self.num_groups = self.head_dim
+        elif self.prune_mode == 'num_head':
+            self.num_groups = self.num_heads
         self.hidden_size = self.num_heads * self.head_dim
         self.num_group_divisible = 2
 
-    def prune_out_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):        
+    def prune_out_dim_head_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):        
         if len(param_names) > 0:
             visited_modules = set()
             for param_name in param_names:
@@ -641,6 +677,33 @@ class BertAttentionOTO(BaseSelfAttentionOTO):
                 expand_pruned_idxes = list()
                 for h in range(self.num_heads):
                     expand_pruned_idxes.extend([i + h * self.head_dim for i in pruned_idxes])
+                leaf_op.prune_out_dim(expand_pruned_idxes)
+
+    def prune_out_dim_num_head(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):
+        visited_modules = set()
+        if len(param_names) > 0:
+            for param_name in param_names:
+                for module_name in self.leaf_modules:
+                    if not param_name.startswith(module_name):
+                        continue
+                    leaf_op = self.leaf_modules[module_name]
+                    if module_name not in visited_modules:
+                        leaf_op.prune_out_dim(pruned_idxes, param_names=[param_name])
+                    visited_modules.add(module_name)
+        elif len(param_names) == 0 and skip_output_node:
+            preserved_idxes = list(set(range(self.num_groups)) - set(pruned_idxes))
+            preserved_idxes.sort()
+            # Prune over k, q, v weights
+            self.module.self.num_attention_heads = self.num_groups - len(pruned_idxes)
+            self.module.self.all_head_size = self.module.self.num_attention_heads * self.module.self.attention_head_size
+            for module_name in self.leaf_modules:
+                if self.out_key in module_name:
+                    continue
+                leaf_op = self.leaf_modules[module_name]
+                expand_pruned_idxes = list()
+                for i in pruned_idxes.tolist():
+                    for h in range(self.head_dim):
+                        expand_pruned_idxes.append(h + i * self.head_dim)
                 leaf_op.prune_out_dim(expand_pruned_idxes)
 
 class PReLUOTO(Operator):
@@ -686,7 +749,7 @@ BASIC_MODULES = {
 # Composed modules must contain at least two nodes with trainable variables
 COMPOSED_MODULES = {
     'LlamaAttention': LlamaAttentionOTO,
-    'SelfAttention': BaseSelfAttentionOTO,
+    'SelfAttention': BaseMultiHeadAttentionOTO,
     'BertAttention': BertAttentionOTO,
     'LoraLinear': LoraLinearOTO,
 }

@@ -41,12 +41,12 @@ def importance_score_by_first_order_taylor_lhspg(param_group, global_params):
             original_param = global_params[original_param_name]
 
             param_transform = None
-            if p_transform == TensorTransform.MULTIHEAD:
+            if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                 param_transform = tensor_transformation(original_param, p_transform, param_group['num_groups'], param_group['num_heads'])
             else:
                 param_transform = tensor_transformation(original_param, p_transform, param_group['num_groups'])
             grad_transform = None
-            if p_transform == TensorTransform.MULTIHEAD:
+            if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                 grad_transform = tensor_transformation(lora_BA, p_transform, param_group['num_groups'], param_group['num_heads'])
             else:
                 grad_transform = tensor_transformation(lora_BA, p_transform, param_group['num_groups'])
@@ -73,12 +73,12 @@ def importance_score_by_second_order_taylor_lhspg(param_group, global_params):
             original_param = global_params[original_param_name]
 
             param_transform = None
-            if p_transform == TensorTransform.MULTIHEAD:
+            if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                 param_transform = tensor_transformation(original_param, p_transform, param_group['num_groups'], param_group['num_heads'])
             else:
                 param_transform = tensor_transformation(original_param, p_transform, param_group['num_groups'])
             grad_transform = None
-            if p_transform == TensorTransform.MULTIHEAD:
+            if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                 grad_transform = tensor_transformation(lora_BA, p_transform, param_group['num_groups'], param_group['num_heads'])
             else:
                 grad_transform = tensor_transformation(lora_BA, p_transform, param_group['num_groups'])

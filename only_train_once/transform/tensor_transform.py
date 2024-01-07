@@ -5,12 +5,14 @@ class TensorTransform(IntEnum):
     NO_PRUNE = 1
     BASIC = 2
     ACCESSORY = 3
-    MULTIHEAD = 4
-    REVERSE_MULTIHEAD = 5
-    AUXILIARY = 6
-    TRANSPOSE = 7
+    MULTIHEAD_HEADDIM = 4
+    MULTIHEAD_NUMHEAD = 5
+    REVERSE_MULTIHEAD_HEADDIM = 6
+    REVERSE_MULTIHEAD_NUMHEAD = 7
+    AUXILIARY = 8
+    TRANSPOSE = 9
 
-    TOTAL = 8
+    TOTAL = 10
     
 def tensor_transformation(tensor, transformation_type, num_groups=1, num_heads=1):
     if transformation_type == TensorTransform.NO_UPDATE or \
@@ -20,20 +22,27 @@ def tensor_transformation(tensor, transformation_type, num_groups=1, num_heads=1
         return basic_transformation(tensor, num_groups)
     elif transformation_type == TensorTransform.ACCESSORY:
         return basic_transformation(tensor, num_groups)
-    elif transformation_type == TensorTransform.MULTIHEAD:
-        return multihead_transformation(tensor, num_groups, num_heads)
-    elif transformation_type == TensorTransform.REVERSE_MULTIHEAD:
-        return reverse_multihead_transformation(tensor, num_groups, num_heads)
+    elif transformation_type == TensorTransform.MULTIHEAD_HEADDIM:
+        return multihead_headdim_transformation(tensor, num_groups, num_heads)
+    elif transformation_type == TensorTransform.MULTIHEAD_NUMHEAD:
+        return multihead_numhead_transformation(tensor, num_groups)
+    elif transformation_type == TensorTransform.REVERSE_MULTIHEAD_HEADDIM:
+        return reverse_multihead_headdim_transformation(tensor, num_groups, num_heads)
+    elif transformation_type == TensorTransform.REVERSE_MULTIHEAD_NUMHEAD:
+        return reverse_multihead_numhead_transformation(tensor, num_groups, num_heads)
     elif transformation_type == TensorTransform.TRANSPOSE:
         return transpose_transformation(tensor, num_groups)
     
 def basic_transformation(tensor, num_groups=1):
     return tensor.view(num_groups, -1)
 
-def multihead_transformation(tensor, num_groups=1, num_heads=1):
+def multihead_headdim_transformation(tensor, num_groups=1, num_heads=1):
     return tensor.view(num_heads, num_groups, -1).permute(1, 0, 2).contiguous().view(num_groups, -1)
 
-def reverse_multihead_transformation(tensor, num_groups=1, num_heads=1):
+def multihead_numhead_transformation(tensor, num_groups=1):
+    return tensor.view(num_groups, -1)
+
+def reverse_multihead_headdim_transformation(tensor, num_groups=1, num_heads=1):
     if tensor.numel() >= num_groups * num_heads:
         return tensor.view(num_groups, num_heads, -1).permute(1, 0, 2).contiguous().view(num_heads * num_groups, -1)
     else:
@@ -43,6 +52,9 @@ def reverse_multihead_transformation(tensor, num_groups=1, num_heads=1):
         else:
             return tensor
 
+def reverse_multihead_numhead_transformation(tensor, num_groups=1, num_heads=1):
+    raise NotImplementedError
+        
 def transpose_transformation(tensor, num_groups=1):
     if len(tensor.shape) == 1:
         return tensor.view(num_groups, -1)
@@ -50,4 +62,3 @@ def transpose_transformation(tensor, num_groups=1):
         return tensor.permute(1, 0).contiguous().view(num_groups, -1)
     elif len(tensor.shape) == 4:
         return tensor.permute(1, 0, 2, 3).contiguous().view(num_groups, -1)
-

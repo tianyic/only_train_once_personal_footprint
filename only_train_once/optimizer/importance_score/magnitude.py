@@ -5,7 +5,7 @@ def importance_score_by_magnitude_dhspg(param_group):
     norm_group = None
     for param, p_transform in zip(param_group['params'], param_group['p_transform']):
         param_transform = None
-        if p_transform == TensorTransform.MULTIHEAD:
+        if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'], param_group['num_heads'])
         else:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'])
@@ -20,7 +20,7 @@ def importance_score_by_avg_magnitude_dhspg(param_group):
     group_sizes = 0
     for param, p_transform in zip(param_group['params'], param_group['p_transform']):
         param_transform = None
-        if p_transform == TensorTransform.MULTIHEAD:
+        if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'], param_group['num_heads'])
         else:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'])
@@ -37,7 +37,7 @@ def importance_score_by_magnitude_lhspg(param_group):
         if 'lora_A' in p_name or 'lora_B' in p_name:
             continue
         param_transform = None
-        if p_transform == TensorTransform.MULTIHEAD:
+        if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'], param_group['num_heads'])
         else:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'])
@@ -54,7 +54,7 @@ def importance_score_by_avg_magnitude_lhspg(param_group):
         if 'lora_A' in p_name or 'lora_B' in p_name:
             continue
         param_transform = None
-        if p_transform == TensorTransform.MULTIHEAD:
+        if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'], param_group['num_heads'])
         else:
             param_transform = tensor_transformation(param, p_transform, param_group['num_groups'])

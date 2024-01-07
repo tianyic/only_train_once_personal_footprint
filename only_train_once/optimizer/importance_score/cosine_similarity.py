@@ -41,7 +41,7 @@ def importance_score_by_cosine_similarity_lhspg(param_group, global_params):
             original_param = global_params[original_param_name]
 
             param_transform = None
-            if p_transform == TensorTransform.MULTIHEAD:
+            if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                 param_transform = tensor_transformation(original_param, p_transform, param_group['num_groups'], param_group['num_heads'])
             else:
                 param_transform = tensor_transformation(original_param, p_transform, param_group['num_groups'])
@@ -51,7 +51,7 @@ def importance_score_by_cosine_similarity_lhspg(param_group, global_params):
                 norm_params += torch.norm(param_transform, dim=1) ** 2
 
             grad_transform = None
-            if p_transform == TensorTransform.MULTIHEAD:
+            if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                 grad_transform = tensor_transformation(lora_BA, p_transform, param_group['num_groups'], param_group['num_heads'])
             else:
                 grad_transform = tensor_transformation(lora_BA, p_transform, param_group['num_groups'])

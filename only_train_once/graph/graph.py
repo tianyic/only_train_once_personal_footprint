@@ -702,39 +702,46 @@ class Graph:
         for node_group in self.node_groups.values():
             if not node_group.is_prunable and not node_group.is_auxiliary:
                 continue
-            
+
             num_groups = node_group.get_num_groups()
             param_groups = node_group.get_param_groups()
-            
+
             assert target_group_sparsity is None or (target_group_sparsity >= 0 and target_group_sparsity < 1.0)
             curr_group_sparsity = np.random.random() if target_group_sparsity is None else target_group_sparsity
             num_zero_groups = max(min(int(curr_group_sparsity * num_groups) // num_group_divisible * num_group_divisible, num_groups - 1), 0)
             zero_group_idxes = np.random.choice(list(range(0, num_groups - 1)), num_zero_groups, replace=False)
-            
+            zero_group_idxes.sort()
+
             if len(param_groups['params']) == 0:
                 continue   
-            
+
             for (p_name, param, p_transform) in zip(param_groups['p_names'], param_groups['params'], param_groups['p_transform']):
                 # Skip lora_A which is unprunable if any
-                if 'lora_A' in p_name:
+                if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
                     continue
                 if p_transform == TensorTransform.TRANSPOSE and len(param.data.shape) > 1:
                     param.data[:, zero_group_idxes, ...] = 0.0
-                elif p_transform == TensorTransform.MULTIHEAD:
+                elif p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                     multi_head_zero_group_idxes = zero_group_idxes.tolist()
                     for h in range(1, param_groups['num_heads']):
                         multi_head_zero_group_idxes.extend([i + param_groups['head_dim'] * h for i in zero_group_idxes.tolist()])
                     param.data[multi_head_zero_group_idxes] = 0.0
+                elif p_transform == TensorTransform.MULTIHEAD_NUMHEAD:
+                    multi_head_zero_group_idxes = list()
+                    for i in zero_group_idxes.tolist():
+                        for h in range(param_groups['head_dim']):
+                            multi_head_zero_group_idxes.append(h + i * param_groups['head_dim'])
+                    param.data[multi_head_zero_group_idxes] = 0.0
                 else:
                     param.data[zero_group_idxes] = 0.0
-                    
+
             for ng_id, offset in param_groups['auxiliary_ngs']:
                 aux_pg = self.node_groups[ng_id].get_param_groups()
                 for aux_p in aux_pg['params']:
                     if aux_p.grad is None:
                         continue
                     aux_p.data[offset+zero_group_idxes, ...] = 0.0
-
+                    
     def set_pruning_redundant_idxes(self):
         for node_group in self.node_groups.values():
             if node_group.is_prunable and not node_group.is_auxiliary:
