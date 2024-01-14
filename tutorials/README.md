@@ -18,7 +18,7 @@ oto.mark_unprunable_by_node_ids()
 ```
 or `param_names`
 ```python
-oto.oto.mark_unprunable_by_param_names()
+oto.mark_unprunable_by_param_names()
 ```
 For example, in [YOLOv5](https://github.com/tianyic/only_train_once/blob/main/sanity_check/test_yolov5.py), we mark the node groups corresponding to detection heads as unprunable. In [DemoNetGroupConvCase1](https://github.com/tianyic/only_train_once/blob/main/sanity_check/test_groupconv_case1.py) which origins from a multi-modal DNN, we mark the node groups including a set of `param_names` as unprunable. 
 
