@@ -136,8 +136,8 @@ class HESSO(Optimizer):
             is_adam = group['variant'] == 'adam' or group['variant'] == 'adamw'
             first_bias_correction = 1.0 - group['first_momentum'] ** self.num_steps if is_adam else None
             second_bias_correction = 1.0 - group['second_momentum'] ** self.num_steps if is_adam else None
-            group['grad_variant'] = list()
-            for j, p in enumerate(group['params']):
+            group['grad_variant'] = dict()
+            for j, (p_name, p) in enumerate(zip(group['p_names'], group['params'])):
                 if p.grad is None:
                     continue
                 refined_grad_f = torch.clone(p.grad.data).detach()
@@ -147,7 +147,7 @@ class HESSO(Optimizer):
                     if group['first_momentum'] > 0.0 or group['dampening'] > 0.0:
                         refined_grad_f = self.get_first_momentum_grad(f"grad_first_moment_buffer_group_{i}_param_{j}", 
                             group['first_momentum'], group['dampening'], refined_grad_f)
-                    group['grad_variant'].append(refined_grad_f)
+                    group['grad_variant'][p_name] = refined_grad_f
                 else:
                     first_moment_grad = self.get_first_momentum_grad(f"grad_first_moment_buffer_group_{i}_param_{j}", 
                         group['first_momentum'], group['first_momentum'], refined_grad_f)                    
@@ -157,10 +157,9 @@ class HESSO(Optimizer):
                     exp_avg_first_moment_grad = first_moment_grad / first_bias_correction
                     exp_avg_second_moment_grad_sq = second_moment_grad_sq / second_bias_correction
                     denom = exp_avg_second_moment_grad_sq.sqrt().add_(self.safe_guard)
-                    group['grad_variant'].append(exp_avg_first_moment_grad / denom)
+                    group['grad_variant'][p_name] = exp_avg_first_moment_grad / denom
         
     def reach_target_group_sparsity(self):
-        self.curr_group_sparsity, _, self.curr_num_zero_groups = self.compute_group_sparsity_param_norm()  
         if self.curr_num_zero_groups < self.target_num_redundant_groups:
             return False
         else:
@@ -249,40 +248,48 @@ class HESSO(Optimizer):
         loss = None
         if closure is not None:
             loss = closure()
-              
+            
         self.num_steps += 1   
-
+          
         # First pass to compute gradient variant via different criteria
         self.compute_grad_variant()
 
         # Partition groups into important and redundant groups  
-        if self.num_steps >= self.start_pruning_step and self.curr_pruning_period < self.pruning_periods:
+        if self.num_steps >= self.start_pruning_step and not self.reach_target_group_sparsity() and \
+            self.curr_pruning_period < self.pruning_periods:
             if (self.num_steps - self.start_pruning_step - 1) % self.pruning_period_duration == 0:
                 self.commit_redundant_idxes()
                 self.compute_importance_scores()
                 self.identify_redundant_groups()
                 self.curr_pruning_period += 1
-
-        # Second pass to update variables        
+                
+        # Second pass to update variables
         t = (self.num_steps - self.start_pruning_step) % self.pruning_period_duration
         for i, group in enumerate(self.param_groups):
-            # print(self.num_steps, group['id'], group['is_prunable'], group['p_names'], group['num_groups'], group['p_transform'], group['auxiliary_ngs'])
             if not group['is_prunable'] or len(self.active_redundant_idxes[group['id']]) == 0:
-                for j, p in enumerate(group['params']):
-                    if p.grad is None:
+                for p_name, p in zip(group['p_names'], group['params']):
+                    if p_name not in group['grad_variant']:
                         continue
                     if group['weight_decay'] is not None and group['variant'] == 'adamw':
                         p.data.add_(group['weight_decay'] * p.data, alpha=-group['lr'])
-                    p.data.add_(group['grad_variant'][j], alpha=-group['lr'])
+                    p.data.add_(group['grad_variant'][p_name], alpha=-group['lr'])
             elif group['is_prunable'] and len(self.active_redundant_idxes[group['id']]) > 0:
-                for j, (p, p_transform) in enumerate(zip(group['params'], group['p_transform'])):
-                    if p.grad is None:
+                for (p_name, p, p_transform) in zip(group['p_names'], group['params'], group['p_transform']):
+                    if p_name not in group['grad_variant']:
                         continue
                     if group['weight_decay'] is not None and group['variant'] == 'adamw':
                         p.data.add_(group['weight_decay'] * p.data, alpha=-group['lr'])
-                    p.data.add_(group['grad_variant'][j], alpha=-group['lr'])
+                    p.data.add_(group['grad_variant'][p_name], alpha=-group['lr'])
                     if p_transform == TensorTransform.TRANSPOSE and len(p.data.shape) > 1:
                         p.data[:, group['active_redundant_bool'], ...] *= (self.pruning_period_duration - t - 1.0) / (self.pruning_period_duration - t)
+                    elif p_transform == TensorTransform.MULTIHEAD_NUMHEAD:
+                        active_redundant_bool = tensor_transformation(group['active_redundant_bool'], TensorTransform.REVERSE_MULTIHEAD_NUMHEAD, \
+                                                                      num_groups=group['num_groups'], head_dim=group['head_dim'])
+                        p.data[active_redundant_bool] *= (self.pruning_period_duration - t - 1.0) / (self.pruning_period_duration - t)
+                    elif p_transform == TensorTransform.MULTIHEAD_HEADDIM:
+                        active_redundant_bool = tensor_transformation(group['active_redundant_bool'], TensorTransform.REVERSE_MULTIHEAD_HEADDIM, \
+                                                                      num_groups=group['num_groups'], num_heads=group['num_heads'])
+                        p.data[active_redundant_bool] *= (self.pruning_period_duration - t - 1.0) / (self.pruning_period_duration - t)
                     else:
                         p.data[group['active_redundant_bool']] *= (self.pruning_period_duration - t - 1.0) / (self.pruning_period_duration - t)
                     
@@ -297,13 +304,24 @@ class HESSO(Optimizer):
             if len(self.pruned_idxes[group['id']]) > 0:
                 for j, (p, p_transform) in enumerate(zip(group['params'], group['p_transform'])):
                     if p_transform == TensorTransform.TRANSPOSE and len(p.data.shape) > 1:
-                        p.data[:, self.pruned_idxes[group['id']]] = 0.0        
+                        p.data[:, self.pruned_idxes[group['id']]] = 0.0
+                    elif p_transform == TensorTransform.MULTIHEAD_NUMHEAD:
+                        pruned_idxes = list()
+                        for i in self.pruned_idxes[group['id']]:
+                            pruned_idxes.extend([h + i * group['head_dim'] for h in range(group['head_dim'])])
+                        p.data[pruned_idxes] = 0.0
+                    elif p_transform == TensorTransform.MULTIHEAD_HEADDIM:
+                        pruned_idxes = list()
+                        for h in range(group['num_heads']):
+                            pruned_idxes.extend([i + h * group['head_dim'] for i in self.pruned_idxes[group['id']]])
+                        p.data[pruned_idxes] = 0.0
                     else:
                         p.data[self.pruned_idxes[group['id']]] = 0.0
             
         if self.num_steps >= self.start_pruning_step and t == self.pruning_period_duration - 1:
             self.commit_redundant_idxes()
-
+            
+        self.curr_group_sparsity, _, self.curr_num_zero_groups = self.compute_group_sparsity_param_norm()                
         return 
     
     def compute_group_sparsity_param_norm(self):
@@ -314,7 +332,11 @@ class HESSO(Optimizer):
             if group['is_prunable'] and not group['is_auxiliary']:
                 norm_group = None
                 for param, p_transform in zip(group['params'], group['p_transform']):
-                    param_transform = tensor_transformation(param, p_transform, group['num_groups'])
+                    param_transform = None
+                    if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
+                        param_transform = tensor_transformation(param, p_transform, group['num_groups'], group['num_heads'])
+                    else:
+                        param_transform = tensor_transformation(param, p_transform, group['num_groups'])
                     if norm_group == None:
                         norm_group = torch.norm(param_transform, dim=1) ** 2
                     else:
@@ -341,7 +363,11 @@ class HESSO(Optimizer):
                 redund_idxes = self.pruned_idxes[id] + self.active_redundant_idxes[id]
                 norm_group = None
                 for param, p_transform in zip(group['params'], group['p_transform']):
-                    param_transform = tensor_transformation(param, p_transform, group['num_groups'])
+                    param_transform = None
+                    if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
+                        param_transform = tensor_transformation(param, p_transform, group['num_groups'], group['num_heads'])
+                    else:
+                        param_transform = tensor_transformation(param, p_transform, group['num_groups'])
                     if norm_group == None:
                         norm_group = torch.norm(param_transform, dim=1) ** 2
                     else:

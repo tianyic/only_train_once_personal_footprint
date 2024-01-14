@@ -1,7 +1,7 @@
 import torch
 from torch import _C
 import numpy as np
-from distutils.version import LooseVersion
+from packaging.version import Version
 from collections import defaultdict
 from only_train_once.operation import COMPOSED_MODULES, BASIC_MODULES, Operator, ParamOTO
 from only_train_once.assets import THEMES
@@ -11,7 +11,7 @@ from only_train_once.transform.graph_transform import FRAMEWORK_TRANSFORMS
 from only_train_once.transform import TensorTransform
 import warnings
 
-if LooseVersion(torch.__version__) >= LooseVersion('1.13.0'):
+if Version(torch.__version__) >= Version('1.13.0'):
     from torch.onnx._globals import GLOBALS
     #tested basd on 1.13 default value 14 does not support gridsample op in onnx
     GLOBALS.export_onnx_opset_version = 16 
@@ -426,10 +426,10 @@ class Graph:
             
             trace_graph = _C._jit_pass_canonicalize(trace_graph)
         else:
-            if LooseVersion(torch.__version__) >= LooseVersion('1.9.0') and \
-            LooseVersion(torch.__version__) <= LooseVersion('1.11.10'):
+            if Version(torch.__version__) >= Version('1.9.0') and \
+            Version(torch.__version__) <= Version('1.11.10'):
                 trace_graph = torch.onnx._optimize_trace(trace_graph, torch.onnx.OperatorExportTypes.ONNX)
-            elif LooseVersion(torch.__version__) >= LooseVersion('1.13.0'):
+            elif Version(torch.__version__) >= Version('1.13.0'):
                 trace_graph = torch.onnx._optimize_graph(trace_graph, torch.onnx.OperatorExportTypes.ONNX)
             else:
                 raise "Torch {} is not supported because of some bug in _optimize_trace.".format(torch.__version__)
@@ -549,7 +549,7 @@ class Graph:
                 self.param_id_to_name[int(tensor_id)] = self.param_names[cur_param]
                 cur_param += 1        
     
-    def build_dot(self, vertical=False, by_node_groups=True):
+    def build_dot(self, vertical=False, by_node_groups=True, display_params=True):
         """
         Generate a GraphViz Dot graph.
         If verbose, then draw more detailed info as well as groups.
@@ -682,6 +682,9 @@ class Graph:
                     label = "<tr><td cellpadding='6'>{}</td></tr>".format(node.title)
                     if node.id:
                         label += "<tr><td>{}</td></tr>".format(node.id)
+                    if len(node.param_names) > 0 and display_params:
+                        for p_name in node.param_names:
+                            label += "<tr><td>{}-{}</td></tr>".format(p_name, self.params_grad[p_name].shape if p_name in self.params_grad else self.params_no_grad[p_name].shape)
                     label = "<<table border='0' cellborder='0' cellpadding='0'>" + label + "</table>>"
                     dot.node(str(node.id), label)
 
@@ -689,7 +692,7 @@ class Graph:
             if isinstance(label, (list, tuple)):
                 label = "x".join([str(l or "?") for l in label])
             dot.edge(str(a), str(b), label)
-        return dot    
+        return dot
 
     def visited_dict(self):
         visited = dict()
@@ -698,24 +701,22 @@ class Graph:
         return visited
 
     def random_set_zero_groups(self, target_group_sparsity=None, num_group_divisible=2):
-        print("Random set zero groups")
-        for node_group in self.node_groups.values():
-            if not node_group.is_prunable and not node_group.is_auxiliary:
+        param_groups = self.get_param_groups()
+        for param_group in param_groups:
+            if not param_group['is_prunable'] or param_group['is_auxiliary']:
                 continue
-
-            num_groups = node_group.get_num_groups()
-            param_groups = node_group.get_param_groups()
 
             assert target_group_sparsity is None or (target_group_sparsity >= 0 and target_group_sparsity < 1.0)
             curr_group_sparsity = np.random.random() if target_group_sparsity is None else target_group_sparsity
+            num_groups = param_group['num_groups']
             num_zero_groups = max(min(int(curr_group_sparsity * num_groups) // num_group_divisible * num_group_divisible, num_groups - 1), 0)
             zero_group_idxes = np.random.choice(list(range(0, num_groups - 1)), num_zero_groups, replace=False)
             zero_group_idxes.sort()
 
-            if len(param_groups['params']) == 0:
-                continue   
-
-            for (p_name, param, p_transform) in zip(param_groups['p_names'], param_groups['params'], param_groups['p_transform']):
+            if len(param_group['params']) == 0:
+                continue
+            
+            for (p_name, param, p_transform) in zip(param_group['p_names'], param_group['params'], param_group['p_transform']):
                 # Skip lora_A which is unprunable if any
                 if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
                     continue
@@ -723,23 +724,21 @@ class Graph:
                     param.data[:, zero_group_idxes, ...] = 0.0
                 elif p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                     multi_head_zero_group_idxes = zero_group_idxes.tolist()
-                    for h in range(1, param_groups['num_heads']):
-                        multi_head_zero_group_idxes.extend([i + param_groups['head_dim'] * h for i in zero_group_idxes.tolist()])
+                    for h in range(1, param_group['num_heads']):
+                        multi_head_zero_group_idxes.extend([i + param_group['head_dim'] * h for i in zero_group_idxes.tolist()])
                     param.data[multi_head_zero_group_idxes] = 0.0
                 elif p_transform == TensorTransform.MULTIHEAD_NUMHEAD:
                     multi_head_zero_group_idxes = list()
                     for i in zero_group_idxes.tolist():
-                        for h in range(param_groups['head_dim']):
-                            multi_head_zero_group_idxes.append(h + i * param_groups['head_dim'])
+                        for h in range(param_group['head_dim']):
+                            multi_head_zero_group_idxes.append(h + i * param_group['head_dim'])
                     param.data[multi_head_zero_group_idxes] = 0.0
                 else:
                     param.data[zero_group_idxes] = 0.0
 
-            for ng_id, offset in param_groups['auxiliary_ngs']:
+            for ng_id, offset in param_group['auxiliary_ngs']:
                 aux_pg = self.node_groups[ng_id].get_param_groups()
                 for aux_p in aux_pg['params']:
-                    if aux_p.grad is None:
-                        continue
                     aux_p.data[offset+zero_group_idxes, ...] = 0.0
                     
     def set_pruning_redundant_idxes(self):

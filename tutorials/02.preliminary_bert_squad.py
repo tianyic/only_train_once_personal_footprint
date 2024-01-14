@@ -25,7 +25,10 @@ python 02.preliminary_bert_squad.py --model_name_or_path bert-base-uncased
                                     --num_train_epochs 10 
                                     --max_seq_length 384 
                                     --doc_stride 128 
+                                    --group_sparsity 0.1
                                     --output_dir ../cache
+
+CUDA_VISIBLE_DEVICES=1 python 02.preliminary_bert_squad.py --model_name_or_path bert-base-uncased --dataset_name squad --per_device_train_batch_size 12 --learning_rate 3e-5 --num_train_epochs 5 --max_seq_length 384 --doc_stride 128 --group_sparsity 0.5 --output_dir ../cache
 """
 # You can also adapt this script on your own question answering task. Pointers for this are left as comments.
 
@@ -117,6 +120,12 @@ def parse_args():
         type=str,
         default=None,
         help="The configuration name of the dataset to use (via the datasets library).",
+    )
+    parser.add_argument(
+        "--group_sparsity",
+        type=float,
+        default=0.1,
+        help="Target group sparsity level.",
     )
     parser.add_argument(
         "--train_file", type=str, default=None, help="A csv or a json file containing the training data."
@@ -798,7 +807,7 @@ def main():
     optimizer = oto.hesso(
         variant='adamw', 
         lr=args.learning_rate, 
-        target_group_sparsity=0.1,
+        target_group_sparsity=args.group_sparsity,
         start_pruning_step=2 * len(train_dataloader),
         pruning_periods=10,
         pruning_steps=2 * len(train_dataloader),
@@ -1050,6 +1059,39 @@ def main():
             
     oto.construct_subnet(out_dir='./')
 
+    text_1 = 'This is a test sentence of a very long string and random wording that is used to test dolly model.' * 7
+    input_data_1 = tokenizer(text_1, return_tensors='pt').input_ids
+
+    text_2 = 'This is a good test sentence of a pretty short string and wording that is used to test dolly model.' * 7
+    input_data_2 = tokenizer(text_2, return_tensors='pt').input_ids
+    
+    full_model = torch.load(oto.full_group_sparse_model_path)
+    compressed_model = torch.load(oto.compressed_model_path)
+    full_output_1 = full_model(input_data_1.to(full_model.device))
+    full_output_2 = full_model(input_data_2.to(full_model.device))
+    compressed_output_1 = compressed_model(input_data_1.to(compressed_model.device))
+    compressed_output_2 = compressed_model(input_data_2.to(compressed_model.device))
+    max_output_diff_1 = torch.max(full_output_1[0] - compressed_output_1[0]).item()
+    max_output_diff_2 = torch.max(full_output_2[0] - compressed_output_2[0]).item()
+    max_output_diff_3 = torch.max(full_output_1[0] - compressed_output_2[0]).item()
+    max_output_diff_4 = torch.max(full_output_2[0] - compressed_output_1[0]).item()
+    
+    print("Maximum output difference under the same inputs:")
+    print(max_output_diff_1)
+
+    print("Maximum output difference under the same inputs:")
+    print(max_output_diff_2)
+
+    print("Maximum output difference under the different inputs:")
+    print(max_output_diff_3)
+
+    print("Maximum output difference under the different inputs:")
+    print(max_output_diff_4)
+
+    full_model_size = os.stat(oto.full_group_sparse_model_path)
+    compressed_model_size = os.stat(oto.compressed_model_path)
+    print("Size of full model     : ", full_model_size.st_size / (1024 ** 3), "GBs")
+    print("Size of compress model : ", compressed_model_size.st_size / (1024 ** 3), "GBs")
 
 if __name__ == "__main__":
     main()

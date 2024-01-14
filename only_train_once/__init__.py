@@ -38,10 +38,10 @@ class OTO:
     def partition_pzigs(self):
         build_pruning_dependency_graph(self._graph)
 
-    def visualize(self, out_dir=None, view=False, vertical=True, by_node_groups=True):
-        self._graph.build_dot(vertical=vertical, by_node_groups=by_node_groups).render(\
+    def visualize(self, out_dir=None, view=False, vertical=True, by_node_groups=True, display_params=False):
+        self._graph.build_dot(vertical=vertical, by_node_groups=by_node_groups, display_params=display_params).render(\
             os.path.join(out_dir if out_dir is not None else './', \
-                self._model.name if hasattr(self._model, 'name') else type(self._model).__name__ + '_zig.gv'), \
+                self._model.name if hasattr(self._model, 'name') else type(self._model).__name__ + '_pruning_dependency'), \
                 view=view)
 
     def hesso(self, lr=0.1, weight_decay=None, first_momentum=None, second_momentum=None, \
@@ -155,6 +155,12 @@ class OTO:
             for node_id in node_ids:
                 if node_id in node_group.nodes:
                     node_group.is_prunable = False
+
+    def mark_unprunable_by_param_names(self, param_names=list()):
+        param_names_set = set(param_names)
+        for node_group in self._graph.node_groups.values():
+            if set(node_group.param_names) & param_names_set:
+                node_group.is_prunable = False
 
     def compute_flops(self, compressed=False, verbose=False):
         # Will be released
