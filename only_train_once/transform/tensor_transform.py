@@ -52,8 +52,14 @@ def reverse_multihead_headdim_transformation(tensor, num_groups=1, num_heads=1):
         else:
             return tensor
 
-def reverse_multihead_numhead_transformation(tensor, num_groups=1, num_heads=1):
-    raise NotImplementedError
+def reverse_multihead_numhead_transformation(tensor, num_groups=1, head_dim=1):
+    if tensor.numel() >= num_groups * head_dim:
+        raise NotImplementedError
+    else:
+        if len(tensor.shape) == 1:
+            return tensor.unsqueeze(1).repeat(1, head_dim).view(num_groups * head_dim, -1).squeeze()
+        else:
+            return tensor
         
 def transpose_transformation(tensor, num_groups=1):
     if len(tensor.shape) == 1:
