@@ -153,7 +153,7 @@ class NodeGroup(BasicNodeGroup):
             return 
         elif len(param_groups['params']) > 0 and not self.is_auxiliary:
             norm_group = None
-            for (param, p_transform) in zip(param_groups['params'], param_groups['p_transform']):
+            for (p_name, param, p_transform) in zip(param_groups['p_names'], param_groups['params'], param_groups['p_transform']):
                 # Skip lora_A or lora_embedding_A if any
                 if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
                     continue
