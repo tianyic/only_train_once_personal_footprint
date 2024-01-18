@@ -162,8 +162,17 @@ class OTO:
             if set(node_group.param_names) & param_names_set:
                 node_group.is_prunable = False
 
-    def compute_flops(self, compressed=False, verbose=False):
+    def get_node_groups_by_param_name(self, param_name=''):
+        node_groups = list()
+        for node_group in self._graph.node_groups.values():
+            if param_name in node_group.param_names:
+                node_groups.append(node_group)
+        return node_groups
+    
+    def compute_flops(self, pruned=False, verbose=False):
         # Will be released
+        from flops import compute_flops
+        
         raise NotImplementedError
     
     def compute_num_params(self, compressed=False):
