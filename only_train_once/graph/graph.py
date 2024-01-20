@@ -1,7 +1,7 @@
 import torch
 from torch import _C
 import numpy as np
-from distutils.version import LooseVersion
+from packaging.version import Version
 from collections import defaultdict
 from only_train_once.operation import COMPOSED_MODULES, BASIC_MODULES, Operator, ParamOTO
 from only_train_once.assets import THEMES
@@ -11,10 +11,17 @@ from only_train_once.transform.graph_transform import FRAMEWORK_TRANSFORMS
 from only_train_once.transform import TensorTransform
 import warnings
 
-if LooseVersion(torch.__version__) >= LooseVersion('1.13.0'):
+if Version(torch.__version__) >= Version('1.13.0'):
     from torch.onnx._globals import GLOBALS
     #tested basd on 1.13 default value 14 does not support gridsample op in onnx
     GLOBALS.export_onnx_opset_version = 16 
+
+from .utils import (
+    _get_str_inside_parenthesis, 
+    _optimize_trace_graph_no_onnx_operator, 
+    _get_tensor_shape,
+    _scale_value
+)
 
 class Graph:
     """Tracks nodes and edges of a directed graph and supports basic operations on them."""
@@ -81,6 +88,8 @@ class Graph:
             op_name = torch_node.kind().split("::")[-1].lower().replace('_', '')
             # Operation Parameters
             op_cfg_params = {k: getattr(torch_node, torch_node.kindOf(k))(k) for k in torch_node.attributeNames()}
+            # output_shape = _get_tensor_shape(str(torch_node))
+            output_shape = _get_tensor_shape(str(torch_node).split(':')[1].strip())
 
             # Inputs/outputs
             inputs = [i.unique() for i in torch_node.inputs()]
@@ -92,9 +101,11 @@ class Graph:
             if len(param_names) > 0:
                 if param_names[0] in self.param_name_to_operator:
                     op = self.param_name_to_operator[param_names[0]]
+                    op.cfg_params = op_cfg_params
                 elif len(param_names) == 1 and param_names[0] in self.params_grad:
                     op = ParamOTO(_type=op_name, cfg_params=op_cfg_params, param_name=param_names[0],\
                                   param=self.params_grad[param_names[0]])
+                    
                 else:
                     op = Operator(_type=op_name, cfg_params=op_cfg_params)
                     for param_name in param_names:
@@ -102,12 +113,12 @@ class Graph:
                                                        else self.params_no_grad[param_name]
             else:
                 op = Operator(_type=op_name, cfg_params=op_cfg_params)
-                
+
             # Note that op_name may not equals to op.id if belongs to the composed operator. 
-            node = Node(id=self.torch_node_id(torch_node), op_name=op_name, op=op, inputs=inputs, outputs=outputs, param_names=param_names)
+            node = Node(id=self.torch_node_id(torch_node), op_name=op_name, op=op, inputs=inputs, outputs=outputs, param_names=param_names, output_shape=output_shape)
             if op.id in self.op_name_to_node_group_comp_op:
                 self.op_name_to_node_group_comp_op[op.id].add_node(node)
-            
+
             self.add_node(node)
 
             # Add edges
@@ -138,7 +149,23 @@ class Graph:
                 self.output_nodes[node.id] = node
             if len(set(node.inputs).intersection(set(self.inputs.keys()))) > 0:
                 self.input_nodes[node.id] = node
-        
+
+        # Set up input shape for each node
+        for node in self.nodes.values():
+            if len(node.inputs) == 0:
+                continue
+            nodes_in = self.incoming(node)
+            if len(nodes_in) == 0:
+                # If has non-node inputs, the input must be input tensor for the DNN
+                for in_id in node.inputs:
+                    if in_id not in self.inputs:
+                        continue
+                    input_shape = _get_tensor_shape(self.inputs[in_id][-1][1], prefix_str='Float')
+                    node.input_shape.append(input_shape)
+            else:
+                for node_in in nodes_in:
+                    node.input_shape.append(node_in.output_shape)
+
         # Add dummy input and output node
         dummy_input_node = Node(id='dummy_input', op_name='dummy_input')
         dummy_output_node = Node(id='dummy_output', op_name='dummy_output')
@@ -152,7 +179,7 @@ class Graph:
         if self.trace_onnx:
             self.replace_eligible_matmul_as_linear()
             self.remove_isolated_nodes()
-        
+
     def remove_patterns(self, skip_patterns):
         # Warning: This method does not gurantee the validity of the graph. Users should be careful when using the method.
         # remove path patterns in dfs order
@@ -202,7 +229,7 @@ class Graph:
             else:
                 edges_new.append(edge)
         self.edges = edges_new
-        
+
     def _find_remove_pattern(self, pattern):
         
         pattern_node_names = pattern.split("->")
@@ -393,43 +420,11 @@ class Graph:
             trace_graph, _ = torch.jit._get_trace_graph(model, dummy_input)
             
         if not optimized_onnx:
-            # Optimize trace graph based on _optimize_graph of https://github.com/pytorch/pytorch/blob/main/torch/onnx/utils.py
-            # Inline everything
-            _C._jit_pass_inline(trace_graph)
-
-            # Remove fork/wait nodes
-            _C._jit_pass_inline_fork_wait(trace_graph)
-            _C._jit_pass_lint(trace_graph)
-
-            _C._jit_pass_onnx_autograd_function_process(trace_graph)
-            _C._jit_pass_lower_all_tuples(trace_graph)
-        
-            # run dce to eliminate dead parts of the graph that might have been
-            # left behind by things like symbolic_override
-            _C._jit_pass_dce(trace_graph)
-            _C._jit_pass_lint(trace_graph)
-
-            # CSE should improve perf when Autocast is used with disabled cache
-            # Autocast is disabled due to a limitation on tracer as described at https://github.com/pytorch/pytorch/issues/84092
-            # Must run before _C._jit_pass_erase_number_types to prevent type substitution
-            if _C._jit_pass_cse(trace_graph):
-                _C._jit_pass_onnx_lint(trace_graph)
-
-            _C._jit_pass_canonicalize_graph_fuser_ops(trace_graph)
-            _C._jit_pass_lint(trace_graph)
-            _C._jit_pass_peephole(trace_graph, True)
-            _C._jit_pass_fuse_addmm(trace_graph)
-            _C._jit_pass_lint(trace_graph)
-
-            _C._jit_pass_peephole(trace_graph, True)
-            _C._jit_pass_lower_all_tuples(trace_graph)
-            
-            trace_graph = _C._jit_pass_canonicalize(trace_graph)
+            trace_graph = _optimize_trace_graph_no_onnx_operator(trace_graph, torch.onnx.OperatorExportTypes.ONNX)
         else:
-            if LooseVersion(torch.__version__) >= LooseVersion('1.9.0') and \
-            LooseVersion(torch.__version__) <= LooseVersion('1.11.10'):
+            if Version(torch.__version__) >= Version('1.9.0') and Version(torch.__version__) <= Version('1.11.10'):
                 trace_graph = torch.onnx._optimize_trace(trace_graph, torch.onnx.OperatorExportTypes.ONNX)
-            elif LooseVersion(torch.__version__) >= LooseVersion('1.13.0'):
+            elif Version(torch.__version__) >= Version('1.13.0'):
                 trace_graph = torch.onnx._optimize_graph(trace_graph, torch.onnx.OperatorExportTypes.ONNX)
             else:
                 raise "Torch {} is not supported because of some bug in _optimize_trace.".format(torch.__version__)
@@ -512,23 +507,7 @@ class Graph:
         prefix_str = "graph"
         assert torch_graph_str.startswith(prefix_str), "Invalid graph str to be parsed"
 
-        def get_str_inside_parenthesis(str_to_processed, prefix_str=None):
-            if not str_to_processed.startswith(prefix_str):
-                return None
-            stack = []
-            start_idx = len(prefix_str) + 1
-            end_idx = -1 
-            for c in str_to_processed:
-                if c == '(':
-                    stack.append(c)
-                elif c == ')':
-                    stack.pop()
-                end_idx += 1
-                if len(stack) == 0 and end_idx > len(prefix_str):
-                    break
-            return str_to_processed[start_idx : end_idx] 
-
-        tensors_str = get_str_inside_parenthesis(torch_graph_str, prefix_str = prefix_str)
+        tensors_str = _get_str_inside_parenthesis(torch_graph_str, prefix_str = prefix_str)
         tensors_str_list = [s.strip() for s in tensors_str.split('%')][1:]
 
         self.param_id_to_name = dict()
@@ -539,8 +518,6 @@ class Graph:
         for i, tensor_str in enumerate(tensors_str_list):
             tensor_str_split = [s.strip() for s in tensor_str.split(":")]
             tensor_id = tensor_str_split[0]
-            tensor_info = [s.strip() for s in tensor_str_split[1].split(",")]
-            required_grad = True if [s for s in tensor_info if "requires_grad" in s][0].split('=')[1] == '1' else False
             tensor_type = "input" if i < num_inputs else "params"
             if tensor_type == "input":
                 self.inputs['node-' + str(i)] = (i, tensor_id, tensor_str_split)
@@ -549,7 +526,7 @@ class Graph:
                 self.param_id_to_name[int(tensor_id)] = self.param_names[cur_param]
                 cur_param += 1        
     
-    def build_dot(self, vertical=False, by_node_groups=True):
+    def build_dot(self, vertical=False, by_node_groups=True, display_params=True):
         """
         Generate a GraphViz Dot graph.
         If verbose, then draw more detailed info as well as groups.
@@ -557,7 +534,8 @@ class Graph:
         """
         from graphviz import Digraph
         import random
-
+       
+        # dot = Digraph(engine='neato')
         dot = Digraph()
         dot.attr("graph", 
                 bgcolor=self.theme["background_color"],
@@ -682,6 +660,9 @@ class Graph:
                     label = "<tr><td cellpadding='6'>{}</td></tr>".format(node.title)
                     if node.id:
                         label += "<tr><td>{}</td></tr>".format(node.id)
+                    if len(node.param_names) > 0 and display_params:
+                        for p_name in node.param_names:
+                            label += "<tr><td>{}-{}</td></tr>".format(p_name, self.params_grad[p_name].shape if p_name in self.params_grad else self.params_no_grad[p_name].shape)
                     label = "<<table border='0' cellborder='0' cellpadding='0'>" + label + "</table>>"
                     dot.node(str(node.id), label)
 
@@ -698,24 +679,22 @@ class Graph:
         return visited
 
     def random_set_zero_groups(self, target_group_sparsity=None, num_group_divisible=2):
-        print("Random set zero groups")
-        for node_group in self.node_groups.values():
-            if not node_group.is_prunable and not node_group.is_auxiliary:
+        param_groups = self.get_param_groups()
+        for param_group in param_groups:
+            if not param_group['is_prunable'] or param_group['is_auxiliary']:
                 continue
-
-            num_groups = node_group.get_num_groups()
-            param_groups = node_group.get_param_groups()
 
             assert target_group_sparsity is None or (target_group_sparsity >= 0 and target_group_sparsity < 1.0)
             curr_group_sparsity = np.random.random() if target_group_sparsity is None else target_group_sparsity
+            num_groups = param_group['num_groups']
             num_zero_groups = max(min(int(curr_group_sparsity * num_groups) // num_group_divisible * num_group_divisible, num_groups - 1), 0)
             zero_group_idxes = np.random.choice(list(range(0, num_groups - 1)), num_zero_groups, replace=False)
             zero_group_idxes.sort()
 
-            if len(param_groups['params']) == 0:
-                continue   
-
-            for (p_name, param, p_transform) in zip(param_groups['p_names'], param_groups['params'], param_groups['p_transform']):
+            if len(param_group['params']) == 0:
+                continue
+            
+            for (p_name, param, p_transform) in zip(param_group['p_names'], param_group['params'], param_group['p_transform']):
                 # Skip lora_A which is unprunable if any
                 if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
                     continue
@@ -723,25 +702,23 @@ class Graph:
                     param.data[:, zero_group_idxes, ...] = 0.0
                 elif p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                     multi_head_zero_group_idxes = zero_group_idxes.tolist()
-                    for h in range(1, param_groups['num_heads']):
-                        multi_head_zero_group_idxes.extend([i + param_groups['head_dim'] * h for i in zero_group_idxes.tolist()])
+                    for h in range(1, param_group['num_heads']):
+                        multi_head_zero_group_idxes.extend([i + param_group['head_dim'] * h for i in zero_group_idxes.tolist()])
                     param.data[multi_head_zero_group_idxes] = 0.0
                 elif p_transform == TensorTransform.MULTIHEAD_NUMHEAD:
                     multi_head_zero_group_idxes = list()
                     for i in zero_group_idxes.tolist():
-                        for h in range(param_groups['head_dim']):
-                            multi_head_zero_group_idxes.append(h + i * param_groups['head_dim'])
+                        for h in range(param_group['head_dim']):
+                            multi_head_zero_group_idxes.append(h + i * param_group['head_dim'])
                     param.data[multi_head_zero_group_idxes] = 0.0
                 else:
                     param.data[zero_group_idxes] = 0.0
 
-            for ng_id, offset in param_groups['auxiliary_ngs']:
+            for ng_id, offset in param_group['auxiliary_ngs']:
                 aux_pg = self.node_groups[ng_id].get_param_groups()
                 for aux_p in aux_pg['params']:
-                    if aux_p.grad is None:
-                        continue
                     aux_p.data[offset+zero_group_idxes, ...] = 0.0
-                    
+
     def set_pruning_redundant_idxes(self):
         for node_group in self.node_groups.values():
             if node_group.is_prunable and not node_group.is_auxiliary:
@@ -807,6 +784,7 @@ class Graph:
                 ng_param_group = node_group.get_param_groups()
                 if len(ng_param_group['params']) > 0:
                     param_groups[node_group.id] = ng_param_group
+
         # Second pass for tackling auxliary node groups
         for node_group in self.node_groups.values():
             if node_group.is_auxiliary and node_group.is_trainable:
@@ -832,7 +810,35 @@ class Graph:
 
         param_groups = dict(sorted(param_groups.items(), key=lambda kv:(kv[0], kv[1])))
         return param_groups.values()
-        
+
+    def get_node_groups_by_param_name(self, param_name=''):
+        node_groups = list()
+        for node_group in self._graph.node_groups.values():
+            if param_name in node_group.param_names:
+                node_groups.append(node_group)
+        return node_groups
+
+    def compute_flops(self, in_million=True, in_billion=False):
+        flops_break_down = dict()
+        flops_break_down['total'] = 0
+
+        for node_group in self.node_groups.values():
+            flops_break_down[node_group.id] = dict()
+            flops_break_down[node_group.id]['flops'] = 0
+
+            for node in node_group:
+                cur_flops = node.op.compute_flops(node.input_shape[0])
+                cur_flops = _scale_value(cur_flops, in_million, in_billion)
+                flops_break_down[node_group.id]['flops'] += cur_flops
+                flops_break_down['total'] += cur_flops
+        return flops_break_down
+
+    def compute_num_params(self, in_million=True, in_billion=False):
+        num_params = 0
+        for _, param in self._model.named_parameters():
+            num_params += param.numel()
+        return _scale_value(num_params, in_million, in_billion)
+
     def cluster_node_groups(self, num_clusters=1):
         if num_clusters == 1:
             self.node_group_clusters = dict()

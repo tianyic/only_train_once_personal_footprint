@@ -115,6 +115,17 @@ class Operator(BasicOperator):
             param = self.name_to_param[param_name]
             self.num_groups = max(self.num_groups, param.shape[0])
 
+    def compute_flops(self, input_shape):
+        return 0
+
+    @property
+    def num_params(self):
+        num_params = 0
+        for param_name in self.name_to_param:
+            param = self.name_to_param[param_name]
+            num_params += param.numel()
+        return num_params
+    
 class ParamOTO(Operator):
     '''
     Operator for the tensor parameters in torch yet not formed in nn.Module 
@@ -178,7 +189,25 @@ class Conv2dOTO(Operator):
             return
         self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 1)
         self.module.in_channels = self.module.in_channels - len(pruned_idxes)
-        
+
+    def compute_flops(self, input_tensor_shape):
+        # Only consider multiplication
+        batch_size, _, height_in, width_in = input_tensor_shape
+        stride_h, stride_w = self.cfg_params['strides']
+        kernel_h, kernel_w = self.cfg_params['kernel_shape']
+        if 'pads' in self.cfg_params:
+            height_in = height_in + self.cfg_params['pads'][2] * 2
+            width_in = width_in + self.cfg_params['pads'][3] * 2
+
+        sliding_times_h = (height_in - kernel_h + stride_h) // (stride_h)
+        sliding_times_w = (width_in - kernel_w + stride_w) // (stride_w)
+                
+        flops = batch_size * kernel_h * kernel_w * sliding_times_h * sliding_times_w \
+                * self.module.in_channels * self.module.out_channels
+        if 'group' in self.cfg_params:
+            flops /= self.cfg_params['group']
+        return flops
+
 class ConvTranspose2dOTO(Operator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
@@ -340,6 +369,15 @@ class LinearOTO(Operator):
         self.module.in_features = self.module.in_features - len(pruned_idxes)
         self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 1)
 
+    def compute_flops(self, input_tensor_shape):
+        # Only consider multiplication
+        # The input_tensor_shape for linear is [*, in_features]
+        flops = 1
+        for dim in input_tensor_shape:
+            flops *= dim
+        flops *= self.module.out_features
+        return flops
+    
 class LoraLinearOTO(Operator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)

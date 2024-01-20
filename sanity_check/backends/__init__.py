@@ -13,3 +13,4 @@ from .resnet_cifar10 import resnet18_cifar10
 from .demonet_batchnorm_pruning import DemonetBatchnormPruning
 from .carn.carn import CarnNet
 from .convnext import convnext_tiny, convnext_small, convnext_base, convnext_large, convnext_xlarge
+from .shufflefacenet import ShuffleFaceNet

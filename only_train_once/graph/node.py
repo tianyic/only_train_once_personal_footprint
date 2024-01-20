@@ -1,7 +1,7 @@
 import numpy as np
     
 class Node:
-    def __init__(self, id=None, op_name="", op=None, inputs=[], outputs=[], param_names=[]):
+    def __init__(self, id=None, op_name="", op=None, inputs=[], outputs=[], param_names=[], output_shape=[]):
         super().__init__()
         self.id = id    
         self.op = op
@@ -14,6 +14,8 @@ class Node:
             "out_dim": False,
             "in_dim": False
         }
+        self.output_shape = output_shape
+        self.input_shape = []
 
     def __repr__(self) -> str:
         return f"Node id: {self.id}, op_name: {self.op_name}, param_names: {self.param_names}"

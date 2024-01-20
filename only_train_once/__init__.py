@@ -2,7 +2,6 @@ from .graph import Graph
 from .dependency_graph import build_pruning_dependency_graph
 from .subnet_construction import automated_pruning_compression
 import os
-from .flops.flops import compute_flops
 
 class OTO:
     def __init__(self, model=None, dummy_input=None, compress_mode='prune', skip_patterns=None, strict_out_nodes=False):
@@ -156,10 +155,8 @@ class OTO:
                 if node_id in node_group.nodes:
                     node_group.is_prunable = False
 
-    def compute_flops(self, compressed=False, verbose=False):
-        # Will be released
-        raise NotImplementedError
+    def compute_flops(self, in_million=True, in_billion=False):
+        return self._graph.compute_flops(in_million=in_million, in_billion=in_billion)
     
-    def compute_num_params(self, compressed=False):
-        # Will be released
-        raise NotImplementedError
+    def compute_num_params(self, in_million=True, in_billion=False):
+        return self._graph.compute_num_params(in_million=in_million, in_billion=in_billion)
