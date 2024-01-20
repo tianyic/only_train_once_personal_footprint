@@ -670,7 +670,7 @@ class Graph:
             if isinstance(label, (list, tuple)):
                 label = "x".join([str(l or "?") for l in label])
             dot.edge(str(a), str(b), label)
-        return dot    
+        return dot
 
     def visited_dict(self):
         visited = dict()

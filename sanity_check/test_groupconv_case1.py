@@ -20,26 +20,20 @@ class TestGroupConvCase1(unittest.TestCase):
         norm_type = 'in'
         model = DemoNetGroupConvCase1(norm_type=norm_type, affine=affine)
         oto = OTO(model, dummy_input)
+        unprunable_param_names = [
+            'conv_1.conv1.weight',
+            'conv_5.conv2.weight',
+            'conv_6.conv1.weight'
+        ]
+        oto.mark_unprunable_by_param_names(param_names=unprunable_param_names)
 
-        unprunable_node_ids = ['out-67', 'out-88', 'out-84']    
-            
-        for node_group in oto._graph.node_groups.values():
-            for unprunable_node_id in unprunable_node_ids:
-                if unprunable_node_id in node_group.id:
-                    node_group.is_prunable = False
-
-        oto.visualize(view=False, out_dir=OUT_DIR)
+        oto.visualize(view=False, out_dir=OUT_DIR, display_params=True)
         
         oto.random_set_zero_groups()
         oto.construct_subnet(out_dir=OUT_DIR)
         full_model = torch.load(oto.full_group_sparse_model_path)
         compressed_model = torch.load(oto.compressed_model_path)
 
-        torch.onnx.export(
-            model,
-            dummy_input,
-            'sanity_check_demo_groupconv.onnx'
-        )
         full_output = full_model(*dummy_input)
         compressed_output = compressed_model(*dummy_input)
 
@@ -49,4 +43,4 @@ class TestGroupConvCase1(unittest.TestCase):
         compressed_model_size = os.stat(oto.compressed_model_path)
         print("Size of full model     : ", full_model_size.st_size / (1024 ** 3), "GBs")
         print("Size of compress model : ", compressed_model_size.st_size / (1024 ** 3), "GBs")
-        self.assertLessEqual(max_output_diff, 3.0)
+        self.assertLessEqual(max_output_diff, 1e-3)

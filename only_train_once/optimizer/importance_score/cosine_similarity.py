@@ -6,14 +6,25 @@ def importance_score_by_cosine_similarity_dhspg(param_group):
     norm_params = None
     norm_grads = None
     params_grads_inner_prod = None
-    for param, grad, p_transform in zip(param_group['params'], param_group['grad_variant'], param_group['p_transform']):
-        param_transform = tensor_transformation(param, p_transform, param_group['num_groups'])
+    for p_name, param, p_transform in zip(param_group['p_names'], param_group['params'], param_group['p_transform']):    
+        if p_name not in param_group['grad_variant']:
+            continue
+        grad = param_group['grad_variant'][p_name]
+        param_transform = None
+        if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
+            param_transform = tensor_transformation(param, p_transform, param_group['num_groups'], param_group['num_heads'])
+        else:
+            param_transform = tensor_transformation(param, p_transform, param_group['num_groups'])
         if norm_params == None:
             norm_params = torch.norm(param_transform, dim=1) ** 2
         else:
             norm_params += torch.norm(param_transform, dim=1) ** 2
 
-        grad_transform = tensor_transformation(grad, p_transform, param_group['num_groups'])
+        grad_transform = None
+        if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
+            grad_transform = tensor_transformation(grad, p_transform, param_group['num_groups'], param_group['num_heads'])
+        else:
+            grad_transform = tensor_transformation(grad, p_transform, param_group['num_groups'])
         if norm_grads == None:
             norm_grads = torch.norm(grad_transform, dim=1) ** 2
         else:

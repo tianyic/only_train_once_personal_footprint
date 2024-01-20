@@ -24,6 +24,7 @@ from test_convtranspose_in_case2 import TestConvTransposeInCase2
 from test_weight_share_case1 import TestDemoNetWeighShareCase1
 from test_weight_share_case2 import TestDemoNetWeighShareCase2
 from test_batchnorm_case1 import TestDemoNetBatchnormPruningCase1
+from test_groupconv_case1 import TestGroupConvCase1
 
 from test_resnet50 import TestResNet50
 from test_densenet121 import TestDenseNet121

@@ -153,10 +153,15 @@ class NodeGroup(BasicNodeGroup):
             return 
         elif len(param_groups['params']) > 0 and not self.is_auxiliary:
             norm_group = None
-            for (param, p_transform) in zip(param_groups['params'], param_groups['p_transform']):
-                param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'])
-                if p_transform == TensorTransform.NO_PRUNE:
+            for (p_name, param, p_transform) in zip(param_groups['p_names'], param_groups['params'], param_groups['p_transform']):
+                # Skip lora_A or lora_embedding_A if any
+                if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
                     continue
+                param_transform = None
+                if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
+                    param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'], param_groups['num_heads'])
+                else:
+                    param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'])
                 if norm_group == None:
                     norm_group = torch.norm(param_transform, dim=1) ** 2
                 else:

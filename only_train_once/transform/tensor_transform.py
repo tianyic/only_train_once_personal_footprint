@@ -14,7 +14,7 @@ class TensorTransform(IntEnum):
 
     TOTAL = 10
     
-def tensor_transformation(tensor, transformation_type, num_groups=1, num_heads=1):
+def tensor_transformation(tensor, transformation_type, num_groups=1, num_heads=1, head_dim=1):
     if transformation_type == TensorTransform.NO_UPDATE or \
        transformation_type == TensorTransform.NO_PRUNE:
         return tensor 
@@ -29,7 +29,7 @@ def tensor_transformation(tensor, transformation_type, num_groups=1, num_heads=1
     elif transformation_type == TensorTransform.REVERSE_MULTIHEAD_HEADDIM:
         return reverse_multihead_headdim_transformation(tensor, num_groups, num_heads)
     elif transformation_type == TensorTransform.REVERSE_MULTIHEAD_NUMHEAD:
-        return reverse_multihead_numhead_transformation(tensor, num_groups, num_heads)
+        return reverse_multihead_numhead_transformation(tensor, num_groups, head_dim)
     elif transformation_type == TensorTransform.TRANSPOSE:
         return transpose_transformation(tensor, num_groups)
     
@@ -52,8 +52,14 @@ def reverse_multihead_headdim_transformation(tensor, num_groups=1, num_heads=1):
         else:
             return tensor
 
-def reverse_multihead_numhead_transformation(tensor, num_groups=1, num_heads=1):
-    raise NotImplementedError
+def reverse_multihead_numhead_transformation(tensor, num_groups=1, head_dim=1):
+    if tensor.numel() >= num_groups * head_dim:
+        raise NotImplementedError
+    else:
+        if len(tensor.shape) == 1:
+            return tensor.unsqueeze(1).repeat(1, head_dim).view(num_groups * head_dim, -1).squeeze()
+        else:
+            return tensor
         
 def transpose_transformation(tensor, num_groups=1):
     if len(tensor.shape) == 1:
