@@ -58,10 +58,6 @@ class TestBert(unittest.TestCase):
         max_output_diff_3 = torch.max(full_output_1[0] - compressed_output_2[0]).item()
         max_output_diff_4 = torch.max(full_output_2[0] - compressed_output_1[0]).item()
 
-        # max_output_diff_1 = torch.max(full_output_1.logits - compressed_output_1.logits).item()
-        # max_output_diff_2 = torch.max(full_output_2.logits - compressed_output_2.logits).item()
-        # max_output_diff_3 = torch.max(full_output_1.logits - compressed_output_2.logits).item()
-        # max_output_diff_4 = torch.max(full_output_2.logits - compressed_output_1.logits).item()
         print("Maximum output difference under the same inputs:")
         print(max_output_diff_1)
 

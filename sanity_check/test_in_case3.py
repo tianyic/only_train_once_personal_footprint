@@ -22,9 +22,9 @@ class TestINCase3(unittest.TestCase):
         compressed_output = compressed_model(dummy_input)
 
         max_output_diff = torch.max(torch.abs(full_output - compressed_output))
-        print("Maximum output difference " + str(max_output_diff.item()))
+        print("Maximum output difference : ", max_output_diff.item())
         full_model_size = os.stat(oto.full_group_sparse_model_path)
         compressed_model_size = os.stat(oto.compressed_model_path)
-        print("Size of full model     : ", full_model_size.st_size / (1024 ** 3), "GBs")
-        print("Size of compress model : ", compressed_model_size.st_size / (1024 ** 3), "GBs")
+        print("Size of full model        : ", full_model_size.st_size / (1024 ** 3), "GBs")
+        print("Size of compress model    : ", compressed_model_size.st_size / (1024 ** 3), "GBs")
         self.assertLessEqual(max_output_diff, 3.0)

@@ -132,7 +132,6 @@ class Operator(BasicOperator):
         return num_params
     
 class ParamOTO(Operator):
-
     '''
     Operator for the tensor parameters in torch yet not formed in nn.Module 
     '''
