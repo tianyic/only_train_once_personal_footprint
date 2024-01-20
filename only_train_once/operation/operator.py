@@ -116,6 +116,11 @@ class Operator(BasicOperator):
             self.num_groups = max(self.num_groups, param.shape[0])
 
     def compute_flops(self, input_shape):
+        '''
+        Currently only add FLOP calculation for conv and linear layers.
+        Other operator requires further implementations. 
+        Welcome PR in any.
+        '''
         return 0
 
     @property
@@ -127,6 +132,7 @@ class Operator(BasicOperator):
         return num_params
     
 class ParamOTO(Operator):
+
     '''
     Operator for the tensor parameters in torch yet not formed in nn.Module 
     '''
