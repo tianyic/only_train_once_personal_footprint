@@ -12,7 +12,7 @@ class HESSO(Optimizer):
     HESSO: Hybrid Efficient Structured Sparse Optimizer
     '''
     def __init__(self, params, variant='sgd', lr=required, first_momentum=None, second_momentum=None, \
-                 dampening=None, weight_decay=None, target_group_sparsity=0.5, \
+                 dampening=None, weight_decay=None, target_group_sparsity=0.5,  device='cuda',\
                  tolerance_group_sparsity=0.05, start_pruning_step=0, pruning_steps=None, pruning_periods=1, \
                  group_divisible=1, fixed_zero_groups=True, importance_score_criteria='default'):
 
@@ -28,6 +28,7 @@ class HESSO(Optimizer):
         self.pruning_steps = pruning_steps
         self.pruning_period_duration = self.pruning_steps // self.pruning_periods # How many pruning steps for each period
         self.curr_pruning_period = 0 # Track pruning period
+        self.device=device
 
         # Set up hyper-parameters related to baseline optimizer
         first_momentum = first_momentum if first_momentum is not None else DEFAULT_OPT_PARAMS[variant]['first_momentum']
@@ -232,7 +233,7 @@ class HESSO(Optimizer):
                         self.target_num_redundant_groups += (refined_num_active_redundant_groups - len(self.active_redundant_idxes[group['id']]))
                         self.active_redundant_idxes[group['id']] = self.active_redundant_idxes[group['id']][:refined_num_active_redundant_groups]
                 self.important_idxes[group['id']] = [i for i in self.important_idxes[group['id']] if (i not in self.active_redundant_idxes[group['id']] and i not in self.pruned_idxes[group['id']])]
-                group['active_redundant_bool'] = torch.zeros(group['num_groups'], dtype=torch.bool).cuda()
+                group['active_redundant_bool'] = torch.zeros(group['num_groups'], dtype=torch.bool).cuda(device=self.device)
                 group['active_redundant_bool'][self.active_redundant_idxes[group['id']]] = True
         return
 

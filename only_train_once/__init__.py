@@ -45,7 +45,7 @@ class OTO:
 
     def hesso(self, lr=0.1, weight_decay=None, first_momentum=None, second_momentum=None, \
                variant='sgd', target_group_sparsity=0.5, start_pruning_step=0, \
-               pruning_steps=1, pruning_periods=1, \
+               pruning_steps=1, pruning_periods=1, device='cuda',\
                dampening=None, group_divisible=1, fixed_zero_groups=True, importance_score_criteria='default'):
         from .optimizer import HESSO
         self._optimizer = HESSO(
@@ -61,7 +61,8 @@ class OTO:
             pruning_periods=pruning_periods,
             pruning_steps=pruning_steps,
             group_divisible=group_divisible,
-            importance_score_criteria=importance_score_criteria
+            importance_score_criteria=importance_score_criteria, 
+            device=device
         )
         return self._optimizer
 
