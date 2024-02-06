@@ -12,6 +12,8 @@ We are hiring a research software engineer to join us develop the next generatio
 
 More tutorials for the pruning mode will be released this February. 
 
+This repo will be move underneath github.com/microsoft/only_train_once once a formal dev team is established. 
+
 ## Publications
 
 Please find our series of works and [bibtexs](https://github.com/tianyic/only_train_once?tab=readme-ov-file#citation) for kind citations. 
