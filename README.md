@@ -6,7 +6,9 @@
 
 This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an $\color{LimeGreen}{\textbf{automatic}}$, $\color{LightCoral}{\textbf{architecture}}$ $\color{LightCoral}{\textbf{agnostic}}$ DNN $\color{Orange}{\textbf{training}}$ and $\color{Violet}{\textbf{compression}}$ (via $\color{CornflowerBlue}{\textbf{structure pruning}}$ and $\color{DarkGoldenRod}{\textbf{erasing}}$ operators) framework. By OTO, users could train a general DNN either from scratch or a pretrained checkpoint to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without fine-tuning). 
 
-## News
+## Note! We are hiring.
+
+We are hiring a research software engineer to join us develop the next generation OTO framework. Here is the [job description](https://jobs.careers.microsoft.com/global/en/job/1681977/Research-Software-Engineer-II). We encourage candidates with proper backgrounds to apply it. 
 
 More tutorials for the pruning mode will be released this February. 
 
