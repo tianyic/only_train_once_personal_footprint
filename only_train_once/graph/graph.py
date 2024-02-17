@@ -526,7 +526,7 @@ class Graph:
                 self.param_id_to_name[int(tensor_id)] = self.param_names[cur_param]
                 cur_param += 1        
     
-    def build_dot(self, vertical=False, by_node_groups=True, display_params=True):
+    def build_dot(self, vertical=False, by_node_groups=True, display_params=True, display_flops=True):
         """
         Generate a GraphViz Dot graph.
         If verbose, then draw more detailed info as well as groups.
@@ -534,9 +534,13 @@ class Graph:
         """
         from graphviz import Digraph
         import random
-       
-        # dot = Digraph(engine='neato')
+
+        flops_break_down = dict()
+        if display_flops:
+            flops_break_down = self.compute_flops(in_million=True)
+
         dot = Digraph()
+        
         dot.attr("graph", 
                 bgcolor=self.theme["background_color"],
                 color=self.theme["outline_color"],
@@ -608,7 +612,7 @@ class Graph:
                         nodes_in_prunable_node_groups.add(node.id)
                     if is_auxiliary:
                         nodes_in_auxiliary_node_groups.add(node.id)
-                        
+                
             for node_id in node_colors:
                 if len(node_colors[node_id]) == 0:
                     node_colors[node_id] = self.theme["fill_color"]
@@ -663,6 +667,8 @@ class Graph:
                     if len(node.param_names) > 0 and display_params:
                         for p_name in node.param_names:
                             label += "<tr><td>{}-{}</td></tr>".format(p_name, self.params_grad[p_name].shape if p_name in self.params_grad else self.params_no_grad[p_name].shape)
+                    if display_flops:
+                        label += "<tr><td>FLOPs-{:.4f}</td></tr>".format(flops_break_down['by_nodes'][node.id] / flops_break_down['total'])
                     label = "<<table border='0' cellborder='0' cellpadding='0'>" + label + "</table>>"
                     dot.node(str(node.id), label)
 
@@ -670,7 +676,7 @@ class Graph:
             if isinstance(label, (list, tuple)):
                 label = "x".join([str(l or "?") for l in label])
             dot.edge(str(a), str(b), label)
-        return dot
+        return dot    
 
     def visited_dict(self):
         visited = dict()
@@ -693,7 +699,7 @@ class Graph:
 
             if len(param_group['params']) == 0:
                 continue
-            
+
             for (p_name, param, p_transform) in zip(param_group['p_names'], param_group['params'], param_group['p_transform']):
                 # Skip lora_A which is unprunable if any
                 if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
@@ -705,7 +711,7 @@ class Graph:
                     for h in range(1, param_group['num_heads']):
                         multi_head_zero_group_idxes.extend([i + param_group['head_dim'] * h for i in zero_group_idxes.tolist()])
                     param.data[multi_head_zero_group_idxes] = 0.0
-                elif p_transform == TensorTransform.MULTIHEAD_NUMHEAD:
+                elif p_transform == TensorTransform.MULTIHEAD_NUMHEAD or p_transform == TensorTransform.MULTIHEAD_NUMHEAD_SPREAD:
                     multi_head_zero_group_idxes = list()
                     for i in zero_group_idxes.tolist():
                         for h in range(param_group['head_dim']):
@@ -718,7 +724,7 @@ class Graph:
                 aux_pg = self.node_groups[ng_id].get_param_groups()
                 for aux_p in aux_pg['params']:
                     aux_p.data[offset+zero_group_idxes, ...] = 0.0
-
+        
     def set_pruning_redundant_idxes(self):
         for node_group in self.node_groups.values():
             if node_group.is_prunable and not node_group.is_auxiliary:
@@ -821,15 +827,16 @@ class Graph:
     def compute_flops(self, in_million=True, in_billion=False):
         flops_break_down = dict()
         flops_break_down['total'] = 0
-
+        flops_break_down['by_node_groups'] = dict()
+        flops_break_down['by_nodes'] = dict()
         for node_group in self.node_groups.values():
-            flops_break_down[node_group.id] = dict()
-            flops_break_down[node_group.id]['flops'] = 0
-
+            flops_break_down['by_node_groups'][node_group.id] = 0
+            
             for node in node_group:
                 cur_flops = node.op.compute_flops(node.input_shape[0])
                 cur_flops = _scale_value(cur_flops, in_million, in_billion)
-                flops_break_down[node_group.id]['flops'] += cur_flops
+                flops_break_down['by_node_groups'][node_group.id] += cur_flops
+                flops_break_down['by_nodes'][node.id] = cur_flops
                 flops_break_down['total'] += cur_flops
         return flops_break_down
 
@@ -856,7 +863,7 @@ class Graph:
                 if not node_group.is_prunable or not node_group.is_trainable:
                     continue
                 node_group_ids.append(node_group.id)
-                node_group_sizes.append([node_group.get_num_groups(), 1.0])
+                node_group_sizes.append([node_group.num_groups, 1.0])
             node_group_sizes = np.array(node_group_sizes)
 
             kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto").fit(node_group_sizes)
@@ -867,3 +874,17 @@ class Graph:
                     self.node_group_clusters[node_group_cluster_id] = list()
                 node_group = self.node_groups[node_group_id]
                 self.node_group_clusters[node_group_cluster_id].append(node_group)
+
+    def get_node_groups_by_param_name(self, param_name=''):
+        node_groups = list()
+        for node_group in self.node_groups.values():
+            if param_name in node_group.param_names:
+                node_groups.append(node_group)
+        return node_groups
+
+    def get_nodes_by_param_name(self, param_name=''):
+        nodes = list()
+        for node in self.nodes.values():
+            if param_name in node.param_names:
+                nodes.append(node)
+        return nodes

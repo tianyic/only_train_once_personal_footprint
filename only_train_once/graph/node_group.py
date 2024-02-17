@@ -11,7 +11,8 @@ class BasicNodeGroup(ABC):
         self.pruning_redundant_idxes = list()
         self.pruning_important_idxes = list()
         self.is_auxiliary = False
-        
+        self.extra_param_group_attrs = dict()
+
     def __repr__(self):
         return f"Id: {self.id}, is_prunable: {self.is_prunable}, nodes: {self.nodes}"
     
@@ -50,10 +51,6 @@ class BasicNodeGroup(ABC):
     @property
     def param_names(self):
         return self.get_param_names()
-
-    @abstractclassmethod
-    def get_num_groups(self):
-        raise NotImplementedError
     
     def get_param_names(self):    
         param_names = list()
@@ -94,21 +91,17 @@ class BasicNodeGroup(ABC):
 class NodeGroup(BasicNodeGroup):
     def __init__(self, is_prunable=True):
         super().__init__(is_prunable)
-        self.num_groups = None
 
-    def set_num_groups(self):
-        self.num_groups = 1
+    @property
+    def num_groups(self):
+        num_groups = 1
         for node in self:
             if len(node.param_names) == 0:
                 continue
             if not node.op:
                 continue
-            self.num_groups = max(self.num_groups, node.op.num_groups)
-
-    def get_num_groups(self):
-        if not self.num_groups:
-            self.set_num_groups()
-        return self.num_groups
+            num_groups = max(num_groups, node.op.num_groups)
+        return num_groups
 
     def get_modules(self):
         modules = set()
@@ -122,7 +115,7 @@ class NodeGroup(BasicNodeGroup):
     def get_param_groups(self):
         ng_param_group = dict()
         ng_param_group['id'] = self.id
-        ng_param_group['num_groups'] = self.get_num_groups()
+        ng_param_group['num_groups'] = self.num_groups
         ng_param_group['is_prunable'] = self.is_prunable
         ng_param_group['is_auxiliary'] = self.is_auxiliary
         ng_param_group['p_names'] = list()
@@ -143,7 +136,10 @@ class NodeGroup(BasicNodeGroup):
             for attr in node_param_groups:
                 if attr not in basic_attrs:
                     ng_param_group[attr] = node_param_groups[attr]
-                    
+        
+        for attr in self.extra_param_group_attrs:
+            if attr not in ng_param_group:
+                ng_param_group[attr] = self.extra_param_group_attrs[attr]
         return ng_param_group
 
     def set_pruning_redundant_idxes(self):
@@ -153,15 +149,16 @@ class NodeGroup(BasicNodeGroup):
             return 
         elif len(param_groups['params']) > 0 and not self.is_auxiliary:
             norm_group = None
-            for (p_name, param, p_transform) in zip(param_groups['p_names'], param_groups['params'], param_groups['p_transform']):
-                # Skip lora_A or lora_embedding_A if any
-                if 'lora_A' in p_name or 'lora_embedding_A' in p_name:
+            for (param, p_transform) in zip(param_groups['params'], param_groups['p_transform']):
+                if p_transform == TensorTransform.NO_PRUNE:
                     continue
+                
                 param_transform = None
                 if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                     param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'], param_groups['num_heads'])
                 else:
                     param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'])
+
                 if norm_group == None:
                     norm_group = torch.norm(param_transform, dim=1) ** 2
                 else:
@@ -172,15 +169,27 @@ class NodeGroup(BasicNodeGroup):
             norm_group = torch.sqrt(norm_group)
             norm_group = norm_group.cpu()
 
-            self.pruning_important_idxes = np.arange(self.get_num_groups())[norm_group != 0]
-            self.pruning_redundant_idxes = np.arange(self.get_num_groups())[norm_group == 0]
-                
+            self.pruning_important_idxes = np.arange(self.num_groups)[norm_group != 0]
+            self.pruning_redundant_idxes = np.arange(self.num_groups)[norm_group == 0]
+    
+            if hasattr(self, 'overwrite_p_transform'):
+                if self.overwrite_p_transform == TensorTransform.MULTIHEAD_NUMHEAD_SPREAD and 'head_dim' in param_groups:
+                    head_dim = param_groups['head_dim']
+                    refined_pruning_important_idxes = list()
+                    for i in self.pruning_important_idxes:
+                        refined_pruning_important_idxes.extend([h + i * head_dim for h in range(head_dim)])
+                    self.pruning_important_idxes = np.array(refined_pruning_important_idxes)
+                    refined_pruning_redundant_idxes = list()
+                    for i in self.pruning_redundant_idxes:
+                        refined_pruning_redundant_idxes.extend([h + i * head_dim for h in range(head_dim)])
+                    self.pruning_redundant_idxes = np.array(refined_pruning_redundant_idxes)
         elif self.is_auxiliary:
             pruning_redundant_idxes = list()
             offset = 0
             for dependent_node_group in self.dependent_node_groups:
+                
                 if len(dependent_node_group.pruning_redundant_idxes) == 0:
-                    offset += dependent_node_group.get_num_groups()
+                    offset += dependent_node_group.num_groups
                     continue
                 pruning_redundant_idxes.append(dependent_node_group.pruning_redundant_idxes + offset)
                 offset += dependent_node_group.num_groups
@@ -254,8 +263,6 @@ class NodeGroupComposedOp(BasicNodeGroup):
     def __init__(self, is_prunable=True, op=None):
         super().__init__(is_prunable)
         self.op = op
-        if hasattr(self.op, 'num_groups'):
-            self.num_groups = self.op.num_groups
 
     def get_modules(self):
         modules = set()
@@ -330,7 +337,7 @@ class NodeGroupComposedOp(BasicNodeGroup):
     def get_param_groups(self):
         ng_param_group = dict()
         ng_param_group['id'] = self.id
-        ng_param_group['num_groups'] = self.get_num_groups()
+        ng_param_group['num_groups'] = self.num_groups
         ng_param_group['is_prunable'] = self.is_prunable
         ng_param_group['is_auxiliary'] = self.is_auxiliary
         ng_param_group['p_names'] = list()
@@ -350,9 +357,14 @@ class NodeGroupComposedOp(BasicNodeGroup):
         for attr in op_param_group:
             if attr not in basic_attrs:
                 ng_param_group[attr] = op_param_group[attr]
+
+        for attr in self.extra_param_group_attrs:
+            if attr not in ng_param_group:
+                ng_param_group[attr] = self.extra_param_group_attrs[attr]
         return ng_param_group
-        
-    def get_num_groups(self):
+    
+    @property
+    def num_groups(self):
         return self.op.num_groups
 
     def set_pruning_redundant_idxes(self):
@@ -370,7 +382,7 @@ class NodeGroupComposedOp(BasicNodeGroup):
                 if p_transform == TensorTransform.MULTIHEAD_HEADDIM:
                     param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'], param_groups['num_heads'])
                 else:
-                    param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'])                    
+                    param_transform = tensor_transformation(param, p_transform, param_groups['num_groups'])
 
                 if norm_group == None:
                     norm_group = torch.norm(param_transform, dim=1) ** 2
@@ -379,8 +391,8 @@ class NodeGroupComposedOp(BasicNodeGroup):
             norm_group = torch.sqrt(norm_group)
             norm_group = norm_group.cpu()
 
-            self.pruning_important_idxes = np.arange(self.get_num_groups())[norm_group != 0]
-            self.pruning_redundant_idxes = np.arange(self.get_num_groups())[norm_group == 0]
+            self.pruning_important_idxes = np.arange(self.num_groups)[norm_group != 0]
+            self.pruning_redundant_idxes = np.arange(self.num_groups)[norm_group == 0]
                                         
     def prune_out_dim(self, **kwargs):
         if hasattr(self.op, 'prune_out_dim'):

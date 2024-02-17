@@ -24,7 +24,7 @@ class BasicOperator(ABC):
         if param.grad is not None:
             pruned_param.grad = torch.index_select(param.grad, dim, torch.LongTensor(preserved_idxes).to(param.device))
         return pruned_param.to(param.device)
-    
+
 class Operator(BasicOperator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params)
@@ -39,6 +39,7 @@ class Operator(BasicOperator):
         self.num_groups = 1
         # Is basic module or not
         self.is_basic = True
+        self.p_transform = TensorTransform.BASIC
         
     def __eq__(self, name):
         return self.name == name
@@ -106,7 +107,7 @@ class Operator(BasicOperator):
                 continue
             param_groups['p_names'].append(p_name)
             param_groups['params'].append(param)
-            param_groups['p_transform'].append(TensorTransform.BASIC)
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
             
     def set_num_groups(self):
@@ -116,11 +117,6 @@ class Operator(BasicOperator):
             self.num_groups = max(self.num_groups, param.shape[0])
 
     def compute_flops(self, input_shape):
-        '''
-        Currently only add FLOP calculation for conv and linear layers.
-        Other operator requires further implementations. 
-        Welcome PR in any.
-        '''
         return 0
 
     @property
@@ -130,7 +126,7 @@ class Operator(BasicOperator):
             param = self.name_to_param[param_name]
             num_params += param.numel()
         return num_params
-    
+
 class ParamOTO(Operator):
     '''
     Operator for the tensor parameters in torch yet not formed in nn.Module 
@@ -146,7 +142,7 @@ class ParamOTO(Operator):
         param_groups['op'] = self._type
         param_groups['p_names'] = [self.param_name]
         param_groups['params'] = [self.param]
-        param_groups['p_transform'] = [TensorTransform.BASIC]
+        param_groups['p_transform'] = [self.p_transform]
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -169,15 +165,16 @@ class Conv2dOTO(Operator):
         for p_name in param_names:
             param_groups['p_names'].append(p_name)
             param_groups['params'].append(self.name_to_param[p_name])
-            param_groups['p_transform'].append(TensorTransform.BASIC)
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
-        preserved_idxes = list(set(range(self.module.out_channels)) - set(pruned_idxes))
-        preserved_idxes.sort()
-        # TODO: 
+        # TODO: for generic group conv support, we currently only support a special perhaps the most common
+        # case, that is groups = out_channels
         if self.module.groups == self.module.out_channels:
             self.module.groups = self.module.out_channels - len(pruned_idxes)
+        preserved_idxes = list(set(range(self.module.out_channels)) - set(pruned_idxes))
+        preserved_idxes.sort()
         self.module.out_channels = self.module.out_channels - len(pruned_idxes)
         self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 0)
         if self.module.bias is not None:
@@ -206,18 +203,19 @@ class Conv2dOTO(Operator):
 
         sliding_times_h = (height_in - kernel_h + stride_h) // (stride_h)
         sliding_times_w = (width_in - kernel_w + stride_w) // (stride_w)
-                
+
         flops = batch_size * kernel_h * kernel_w * sliding_times_h * sliding_times_w \
                 * self.module.in_channels * self.module.out_channels
         if 'group' in self.cfg_params:
             flops /= self.cfg_params['group']
         return flops
-
+    
 class ConvTranspose2dOTO(Operator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
         self.is_stem = True
         self.set_num_groups()
+        self.p_transform = TensorTransform.TRANSPOSE
         
     def set_num_groups(self):
         self.num_groups = 1
@@ -237,7 +235,7 @@ class ConvTranspose2dOTO(Operator):
         for p_name in param_names:
             param_groups['p_names'].append(p_name)
             param_groups['params'].append(self.name_to_param[p_name])
-            param_groups['p_transform'].append(TensorTransform.TRANSPOSE)
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -267,7 +265,8 @@ class BatchNormOTO(Operator):
         super().__init__(id, _type, cfg_params, module)
         self.is_stem = False
         self.set_num_groups()
-    
+        self.p_transform = TensorTransform.ACCESSORY
+        
     def get_param_groups(self, param_names=[]):
         param_groups = dict()
         param_groups['op'] = 'batchnorm'
@@ -278,7 +277,7 @@ class BatchNormOTO(Operator):
             if p_name in self.name_to_param:
                 param_groups['p_names'].append(p_name)
                 param_groups['params'].append(self.name_to_param[p_name])
-                param_groups['p_transform'].append(TensorTransform.ACCESSORY)
+                param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -296,7 +295,8 @@ class InstanceNormOTO(Operator):
         super().__init__(id, _type, cfg_params, module)
         self.is_stem = False
         self.set_num_groups()
-    
+        self.p_transform = TensorTransform.ACCESSORY
+
     def get_param_groups(self, param_names=[]):
         param_groups = dict()
         param_groups['op'] = 'instantnorm'
@@ -306,7 +306,7 @@ class InstanceNormOTO(Operator):
         for p_name in param_names:
             param_groups['p_names'].append(p_name)
             param_groups['params'].append(self.name_to_param[p_name])
-            param_groups['p_transform'].append(TensorTransform.ACCESSORY)
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -322,21 +322,31 @@ class GroupNormOTO(Operator):
         super().__init__(id, _type, cfg_params, module)
         self.is_stem = False
         self.set_num_groups()
-        self.num_groups_divisible = module.num_groups        
         self.num_heads = module.num_groups
-    
-    def get_param_groups(self):
+        self.head_dim = self.num_groups // self.num_heads
+        self.num_groups = module.num_groups
+        self.p_transform = TensorTransform.MULTIHEAD_NUMHEAD_SPREAD
+        
+    def get_param_groups(self, param_names=list()):
         param_groups = dict()
         param_groups['op'] = 'groupnorm'
-        param_groups['param_names'] = list(self.name_to_param.keys())
-        param_groups['param_transform'] = [TensorTransform.BASIC] * len(param_groups['param_names'])
+        param_groups['p_names'] = list()
+        param_groups['params'] = list()
+        param_groups['p_transform'] = list()
         param_groups['num_groups'] = self.num_groups
+        param_groups['num_heads'] = self.num_heads
+        param_groups['head_dim'] = self.head_dim
+        for p_name in param_names:
+            param_groups['p_names'].append(p_name)
+            param_groups['params'].append(self.name_to_param[p_name])
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
         preserved_idxes = list(set(range(self.module.num_channels)) - set(pruned_idxes))
         preserved_idxes.sort()
         self.module.num_channels = self.module.num_channels - len(pruned_idxes)
+        self.module.num_groups = self.module.num_groups - len(pruned_idxes) // self.head_dim
         if self.module.affine:
             self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 0)
             self.module.bias = self.prune_param_and_grad(self.module.bias, preserved_idxes, 0)
@@ -357,7 +367,7 @@ class LinearOTO(Operator):
         for p_name in target_param_names:
             param_groups['p_names'].append(p_name)
             param_groups['params'].append(self.name_to_param[p_name])
-            param_groups['p_transform'].append(TensorTransform.BASIC)
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -382,7 +392,7 @@ class LinearOTO(Operator):
             flops *= dim
         flops *= self.module.out_features
         return flops
-    
+
 class LoraLinearOTO(Operator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
@@ -455,6 +465,59 @@ class LoraLinearOTO(Operator):
                     module.in_features = len(preserved_idxes)
                 self.module.in_features = len(preserved_idxes)
 
+class LoraEmbeddingOTO(Operator):
+    '''
+    model.model.embed_tokens.weight torch.Size([32000, 4096])
+    model.model.embed_tokens.lora_embedding_A.default torch.Size([8, 32000])
+    model.model.embed_tokens.lora_embedding_B.default torch.Size([4096, 8])
+    '''
+    def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
+        super().__init__(id, _type, cfg_params, module)
+        self.num_groups = self.module.embedding_dim
+        self.is_stem = True
+        self.is_basic = False
+        self.lora_scaling = module.scaling
+
+    def get_param_groups(self, param_names=list(), skip_output_node=False, **kwargs):
+        param_groups = dict()
+        param_groups['op'] = 'lora_embedding'
+        param_groups['p_names'] = list()
+        param_groups['params'] = list()
+        param_groups['p_transform'] = list()
+        if hasattr(self, 'lora_scaling'):
+            param_groups['lora_scaling'] = self.lora_scaling
+        target_param_names = param_names if len(param_names) > 0 else self.name_to_param.keys()
+        for p_name in target_param_names:
+            param = self.name_to_param[p_name]
+            if not skip_output_node or (skip_output_node and 'lora_embedding_A' in p_name):
+                param_groups['p_names'].append(p_name)
+                param_groups['params'].append(param)
+                if 'lora_embedding_A' in p_name:          
+                    param_groups['p_transform'].append(TensorTransform.NO_PRUNE)
+                elif 'lora_embedding_B' in p_name:
+                    param_groups['p_transform'].append(TensorTransform.BASIC)
+                else:
+                    param_groups['p_transform'].append(TensorTransform.TRANSPOSE)
+        return param_groups
+    
+    def prune_out_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=False, **kwargs):  
+        preserved_idxes = list(set(range(self.num_groups)) - set(pruned_idxes))
+        preserved_idxes.sort()
+        # If param_names are provided, pruned by names.
+        target_param_names = param_names if len(param_names) > 0 else self.name_to_param
+        for param_name in target_param_names:   
+            if 'lora_embedding_A' not in param_name and 'lora_embedding_B' not in param_name:
+                if param_name.endswith('.weight'):
+                    self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 1)
+                    self.name_to_param[param_name] = self.module.weight
+                self.module.embedding_dim = len(preserved_idxes)
+            elif 'lora_embedding_B' in param_name:
+                for module_name in self.module.lora_embedding_B:
+                    module_param = self.module.lora_embedding_B[module_name]
+                    self.module.lora_embedding_B[module_name] = self.prune_param_and_grad(module_param, preserved_idxes, 0)
+                    self.name_to_param[param_name] = module_param
+                self.module.embedding_dim = len(preserved_idxes)
+
 class EmbeddingOTO(Operator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
@@ -462,7 +525,8 @@ class EmbeddingOTO(Operator):
         self.is_transpose = True
         self.is_stem = False
         self.is_basic = True
-
+        self.p_transform = TensorTransform.TRANSPOSE
+        
     def get_param_groups(self, **kwargs):
         param_groups = dict()
         param_groups['op'] = 'embedding'
@@ -472,7 +536,7 @@ class EmbeddingOTO(Operator):
         for p_name in self.name_to_param:
             param_groups['p_names'].append(p_name)
             param_groups['params'].append(self.name_to_param[p_name])
-            param_groups['p_transform'].append(TensorTransform.TRANSPOSE)
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -497,7 +561,7 @@ class LayerNormOTO(Operator):
         for p_name in self.name_to_param:
             param_groups['p_names'].append(p_name)
             param_groups['params'].append(self.name_to_param[p_name])
-            param_groups['p_transform'].append(TensorTransform.BASIC)
+            param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -508,7 +572,6 @@ class LayerNormOTO(Operator):
             self.module.bias = self.prune_param_and_grad(self.module.bias, preserved_idxes, 0)
         if hasattr(self.module, 'normalized_shape'):
             self.module.normalized_shape = tuple((len(preserved_idxes),))
-            print(self.module.normalized_shape)
 
 class BaseMultiHeadAttentionOTO(Operator):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
@@ -516,7 +579,7 @@ class BaseMultiHeadAttentionOTO(Operator):
         self.is_stem = True
         self.is_basic = False
         self.out_key = 'attn_w'
-        self.op_name = 'self_attention'
+        self.op_name = 'multi_head_attention'
         self.prune_mode = 'num_head'
 
         assert self.prune_mode in ['head_dim', 'num_head'], "Prune_mode of mha must be either head_dim or num_head."
@@ -678,7 +741,7 @@ class LlamaAttentionOTO(BaseMultiHeadAttentionOTO):
                 for h in range(self.num_heads):
                     expand_pruned_idxes.extend([i + h * self.head_dim for i in pruned_idxes])
                 leaf_op.prune_out_dim(expand_pruned_idxes)
-
+                
 class BertAttentionOTO(BaseMultiHeadAttentionOTO):
     def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().__init__(id, _type, cfg_params, module)
@@ -748,13 +811,79 @@ class BertAttentionOTO(BaseMultiHeadAttentionOTO):
                     for h in range(self.head_dim):
                         expand_pruned_idxes.append(h + i * self.head_dim)
                 leaf_op.prune_out_dim(expand_pruned_idxes)
+                
+class PhiAttentionOTO(BaseMultiHeadAttentionOTO):
+    def __init__(self, id=None, _type=None, cfg_params=dict(), module=None):
+        super().__init__(id, _type, cfg_params, module)
+        self.is_stem = True
+        self.is_basic = False
+        self.out_key = 'out_proj'
+        self.op_name = 'phi_attention'
+        self.set_attributes()
+
+    def set_attributes(self):
+        self.num_heads = self.module.n_head
+        self.head_dim = self.module.head_dim
+        if self.prune_mode == 'head_dim':
+            self.num_groups = self.head_dim
+        elif self.prune_mode == 'num_head':
+            self.num_groups = self.num_heads
+
+    def get_param_groups(self, param_names=list(), skip_output_node=False, **kwargs):
+        param_groups = dict()
+        param_groups['op'] = self.op_name
+        param_groups['p_names'] = list()
+        param_groups['params'] = list()
+        param_groups['p_transform'] = list()
+        param_groups['num_heads'] = self.num_heads
+        param_groups['head_dim'] = self.head_dim
+        if hasattr(self, 'lora_scaling'):
+            param_groups['lora_scaling'] = self.lora_scaling
+        target_param_names = param_names if len(param_names) > 0 else self.name_to_param.keys()
+        for p_name in target_param_names:
+            param = self.name_to_param[p_name]
+            if self.out_key in p_name and not skip_output_node:
+                param_groups['p_names'].append(p_name)
+                param_groups['params'].append(param)
+                if 'lora_A' in p_name:
+                    param_groups['p_transform'].append(TensorTransform.NO_PRUNE)
+                else:
+                    param_groups['p_transform'].append(TensorTransform.BASIC)
+            
+        return param_groups
+
+    def prune_out_dim_head_dim(self, pruned_idxes=list(), param_names=list(), skip_output_node=True, **kwargs):  
+        visited_modules = set()
+        if len(param_names) > 0:
+            for param_name in param_names:
+                for module_name in self.leaf_modules:
+                    if not param_name.startswith(module_name):
+                        continue
+                    leaf_op = self.leaf_modules[module_name]
+                    if module_name not in visited_modules:
+                        leaf_op.prune_out_dim(pruned_idxes, param_names=[param_name])
+                    visited_modules.add(module_name)
+        elif len(param_names) == 0 and skip_output_node:
+            preserved_idxes = list(set(range(self.module.head_dim)) - set(pruned_idxes))
+            preserved_idxes.sort()
+            # Prune over k, q, v weights
+            self.module.head_dim = self.module.head_dim - len(pruned_idxes)
+            for module_name in self.leaf_modules:
+                if self.out_key in module_name:
+                    continue
+                leaf_op = self.leaf_modules[module_name]
+                expand_pruned_idxes = list()
+                for h in range(self.num_heads):
+                    expand_pruned_idxes.extend([i + h * self.head_dim for i in pruned_idxes])
+                leaf_op.prune_out_dim(expand_pruned_idxes)
 
 class PReLUOTO(Operator):
     def init(self, id=None, _type=None, cfg_params=dict(), module=None):
         super().init(id, _type, cfg_params, module)
         self.is_stem = False
         self.set_num_groups()
-
+        self.p_transform = TensorTransform.ACCESSORY
+        
     def get_param_groups(self, param_names=[]):
         param_groups = dict()
         param_groups['op'] = 'prelu'
@@ -765,7 +894,7 @@ class PReLUOTO(Operator):
             if p_name in self.name_to_param:
                 param_groups['p_names'].append(p_name)
                 param_groups['params'].append(self.name_to_param[p_name])
-                param_groups['p_transform'].append(TensorTransform.ACCESSORY)
+                param_groups['p_transform'].append(self.p_transform)
         return param_groups
 
     def prune_out_dim(self, pruned_idxes=list(), **kwargs):
@@ -773,13 +902,14 @@ class PReLUOTO(Operator):
         preserved_idxes.sort()
         self.module.weight = self.prune_param_and_grad(self.module.weight, preserved_idxes, 0)
         self.module.num_parameters = self.module.num_parameters - len(pruned_idxes)
-        
+
 BASIC_MODULES = {
     'ConvTranspose2d': ConvTranspose2dOTO,
     'Conv2d': Conv2dOTO,
+    'ModulatedConv2d': Conv2dOTO, # For stagelightv2
+    'EqualLinear': LinearOTO, # For stagelightv2
     'Linear': LinearOTO,
     'BatchNorm2d': BatchNormOTO,
-    'PReLU': PReLUOTO,
     'InstanceNorm2d': InstanceNormOTO,
     'GroupNorm': GroupNormOTO,
     'Embedding': EmbeddingOTO,
@@ -787,6 +917,7 @@ BASIC_MODULES = {
     'LlamaRMSNorm': LayerNormOTO,
     'LayerNorm': LayerNormOTO,
     
+    'PReLU': PReLUOTO,
 }
 
 # Composed modules must contain at least two nodes with trainable variables
@@ -794,7 +925,9 @@ COMPOSED_MODULES = {
     'LlamaAttention': LlamaAttentionOTO,
     'SelfAttention': BaseMultiHeadAttentionOTO,
     'BertAttention': BertAttentionOTO,
+    'PhiMHA': PhiAttentionOTO,
     'LoraLinear': LoraLinearOTO,
+    'LoraEmbedding': LoraEmbeddingOTO,
 }
 
 # Unsupported e=yet or unprunable Operators
@@ -804,4 +937,5 @@ UNPRUNABLE_BASIC_OPERATORS = [
 ]
 UNPRUNABLE_COMPOSED_OPERATORS = [
     'LoraLinearOTO',
+    'LoraEmbeddingOTO'
 ]

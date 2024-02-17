@@ -128,12 +128,16 @@ def automated_pruning_compression(oto_graph, model, merge_lora_to_base, unmerge_
             # To tackle reshape as flatten operator followed by linear operator
             node_in = oto_graph.incoming(node)[0]
             if node_in.op_name == 'flatten' and node.op_name == 'linear':
-                expand_time = node.op.module.in_features // incoming_ng.get_num_groups()
+                expand_time = node.op.module.in_features // incoming_ng.num_groups
                 in_dim_pruned_idxes_refined = list()
                 for idx in in_dim_pruned_idxes:
                     in_dim_pruned_idxes_refined.extend([i + idx * expand_time for i in range(expand_time)])
                 in_dim_pruned_idxes = in_dim_pruned_idxes_refined
-            
+            elif node_in.op_name == 'split' and (node.is_conv() or node.is_linear()):
+                # Split in_dim_pruned_idxes into multiple pieces
+                # The order is controled by node_in.outputs and node.inputs
+                pass
+
             if not node.pruned_status['in_dim']:
                 node.op.prune_in_dim(pruned_idxes=in_dim_pruned_idxes, param_names=node.param_names)
                 node.pruned_status['in_dim'] = True

@@ -5,6 +5,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 from graph.node_group import NodeGroup
 from operation.operator import UNPRUNABLE_BASIC_OPERATORS, UNPRUNABLE_COMPOSED_OPERATORS
+from transform import is_spread_transformation, TensorTransform, SPREAD_TRANSFORM_MAP
 
 def get_non_stem_nodes(graph, skip_node_ids=set()):
     non_stem_nodes = list()
@@ -189,8 +190,8 @@ def set_auxiliary_node_groups(graph):
             for depend_node_group in node_group.dependent_node_groups:
                 if not hasattr(depend_node_group, 'auxilary_node_groups'):
                     depend_node_group.auxilary_node_groups = list()
-                depend_node_group.auxilary_node_groups.append((node_group.id, offset))
-                offset += depend_node_group.get_num_groups()
+                depend_node_group.auxilary_node_groups.append((node_group, offset))
+                offset += depend_node_group.num_groups
 
 def merge_depth_conv_node_groups(graph):
     visited = dict()
@@ -335,3 +336,51 @@ def build_pruning_dependency_graph(graph):
             for node in node_group:
                 if node.op_name in UNPRUNABLE_BASIC_OPERATORS:
                     node_group.is_prunable = False
+
+    # If dummy input directly added or mul into a node group, mark it as unprunable. 
+    dummy_input_node = graph.nodes['dummy_input']
+    for node_out in graph.outgoing(dummy_input_node):
+        if node_out.op_name == 'add' or node_out.op_name == 'mul':
+            node_group_id = node_out.node_group_ids[0]
+            graph.node_groups[node_group_id].is_prunable = False
+    
+    # Overwrite node number of groups and p_transform if includes spread_transform
+    for node_group in graph.node_groups.values():
+        overwrite_p_transforms = set()
+        overwrite_num_groups = 0
+        fixed_node_ids = set()
+        for node in node_group:
+            if len(node.param_names) == 0 or not node.op:
+                continue
+            node_param_groups = node.op.get_param_groups(param_names=node.param_names)
+            for p_transform in node_param_groups['p_transform']:
+                if is_spread_transformation(p_transform):
+                    overwrite_p_transforms.add(p_transform)
+                    overwrite_num_groups = node_param_groups['num_groups']
+                    fixed_node_ids.add(node.id)
+
+        if len(overwrite_p_transforms) == 1:
+            overwrite_p_transform = next(iter(overwrite_p_transforms))
+            for node in node_group:
+                if len(node.param_names) == 0 or not node.op or node.id in fixed_node_ids:
+                    continue
+                node.op.num_groups = overwrite_num_groups
+                node.op.p_transform = SPREAD_TRANSFORM_MAP[overwrite_p_transform]
+            node_group.overwrite_p_transform = overwrite_p_transform
+        elif len(overwrite_p_transforms) > 1:
+            raise NotImplementedError('One node group has two distinct spread_p_transforms.')
+
+    # If one node group is auxiliary, and has group norm with groups > 1
+    # We currently mark its dependent node groups as unprunable 
+    for node_group in graph.node_groups.values():
+        if not node_group.is_auxiliary:
+            continue
+        fixed_node_ids = set()
+
+        for node in node_group:
+            if len(node.param_names) == 0 or not node.op:
+                continue
+            if type(node.op).__name__ == 'GroupNormOTO':
+                if node.op.num_groups > 1:
+                    for depend_node_group in node_group.dependent_node_groups:
+                        depend_node_group.is_prunable = False

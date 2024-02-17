@@ -14,3 +14,5 @@ from .demonet_batchnorm_pruning import DemonetBatchnormPruning
 from .carn.carn import CarnNet
 from .convnext import convnext_tiny, convnext_small, convnext_base, convnext_large, convnext_xlarge
 # from .shufflefacenet import ShuffleFaceNet
+# from .mixnet import mixnet_s, mixnet_m, mixnet_l
+from .diffusion.diffusion import DiffModelCIFAR, DiffModelBedroom, DiffModelCeleba, DiffModelChurch

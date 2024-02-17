@@ -32,6 +32,13 @@ from test_vgg16bn import TestVGG16BN
 from test_carn import TestCARN
 from test_convnexttiny import TestConvNextTiny
 from test_yolov5 import TestYolov5 # need to install yolov5 dependency
+# from test_mixnet import TestMixNet
+
+from test_diffmodel_cifar import TestDiffModelCIFAR
+from test_diffmodel_bedroom import TestDiffModelBedroom
+from test_diffmodel_celeba import TestDiffModelCeleba
+from test_diffmodel_church import TestDiffModelChurch
+
 
 OUT_DIR = './cache'
 
