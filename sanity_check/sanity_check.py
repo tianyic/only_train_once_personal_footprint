@@ -31,8 +31,10 @@ from test_densenet121 import TestDenseNet121
 from test_vgg16bn import TestVGG16BN
 from test_carn import TestCARN
 from test_convnexttiny import TestConvNextTiny
+from test_convnextlarge import TestConvNextLarge
+from test_convnextxlarge import TestConvNextXLarge
 from test_yolov5 import TestYolov5 # need to install yolov5 dependency
-# from test_mixnet import TestMixNet
+from test_mixnet import TestMixNet
 
 from test_diffmodel_cifar import TestDiffModelCIFAR
 from test_diffmodel_bedroom import TestDiffModelBedroom
