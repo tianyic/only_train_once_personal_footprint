@@ -10,7 +10,7 @@ This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). 
 
 We are hiring a research software engineer to join us develop the next generation OTO framework. Here is the [job description](https://jobs.careers.microsoft.com/global/en/job/1681977/Research-Software-Engineer-II). We encourage candidates with proper backgrounds to apply it. 
 
-More tutorials for the pruning mode will be released this February. 
+In the following months, technical report of HESSO optimizer associated with new optimization techniques and tutorials will be released.
 
 This repo will be moved underneath microsoft open-source affiliation once a formal dev team is established. 
 
@@ -24,7 +24,12 @@ Please find our series of works and [bibtexs](https://github.com/tianyic/only_tr
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in ICLR 2023.
 - [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in NeurIPS 2021.
 
-![oto_overview_2](https://github.com/tianyic/only_train_once/assets/8930611/ed1f8fda-d43c-4b60-a627-7ce9b2277848)
+![oto_overview_2](https://github.com/tianyic/only_train_once/assets/8930611/ed1f8fda-d43c-4b60-a627-7ce9b2277848) 
+
+We also recommend the following our efficient ML works. 
+
+- [DREAM: Diffusion Rectification and Estimation-Adaptive Models](https://www.tianyuding.com/projects/DREAM/), efficient training for diffusion model, in CVPR 2024.
+- [DISTILLM: Towards Streamlined Distillation for Large Language Models](https://arxiv.org/pdf/2402.03898.pdf), knowledge distillation for LLM.
 
 ## Installation
 
