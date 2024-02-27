@@ -26,10 +26,10 @@ Please find our series of works and [bibtexs](https://github.com/tianyic/only_tr
 
 ![oto_overview_2](https://github.com/tianyic/only_train_once/assets/8930611/ed1f8fda-d43c-4b60-a627-7ce9b2277848) 
 
-We also recommend the following our efficient ML works. 
+In addition, we recommend our following efficient ML works. 
 
-- [DREAM: Diffusion Rectification and Estimation-Adaptive Models](https://www.tianyuding.com/projects/DREAM/), efficient training for diffusion model, in CVPR 2024.
-- [DISTILLM: Towards Streamlined Distillation for Large Language Models](https://arxiv.org/pdf/2402.03898.pdf), knowledge distillation for LLM.
+- [DREAM: Diffusion Rectification and Estimation-Adaptive Models](https://www.tianyuding.com/projects/DREAM/), efficient diffusion training, in CVPR 2024.
+- [DISTILLM: Towards Streamlined Distillation for Large Language Models](https://arxiv.org/pdf/2402.03898.pdf), knowledge distillation for LLM, preprint.
 
 ## Installation
 
