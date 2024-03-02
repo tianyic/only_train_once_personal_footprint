@@ -4,15 +4,15 @@
 
 ![oto_overview](https://github.com/tianyic/only_train_once/assets/8930611/131bd6ba-3f94-4b46-8398-074ae311ccf0)
 
-This repository is the Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an $\color{LimeGreen}{\textbf{automatic}}$, $\color{LightCoral}{\textbf{architecture}}$ $\color{LightCoral}{\textbf{agnostic}}$ DNN $\color{Orange}{\textbf{training}}$ and $\color{Violet}{\textbf{compression}}$ (via $\color{CornflowerBlue}{\textbf{structure pruning}}$ and $\color{DarkGoldenRod}{\textbf{erasing}}$ operators) framework. By OTO, users could train a general DNN either from scratch or a pretrained checkpoint to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without fine-tuning). 
+This repository is the (deprecated) Pytorch implementation of **Only-Train-Once** (**OTO**). OTO is an $\color{LimeGreen}{\textbf{automatic}}$, $\color{LightCoral}{\textbf{architecture}}$ $\color{LightCoral}{\textbf{agnostic}}$ DNN $\color{Orange}{\textbf{training}}$ and $\color{Violet}{\textbf{compression}}$ (via $\color{CornflowerBlue}{\textbf{structure pruning}}$ and $\color{DarkGoldenRod}{\textbf{erasing}}$ operators) framework. By OTO, users could train a general DNN either from scratch or a pretrained checkpoint to achieve both high performance and slimmer architecture simultaneously in the one-shot manner (without fine-tuning). 
 
-## Note! We are hiring.
+## Note, the official repo has been moved!
 
-We are hiring a research software engineer to join us develop the next generation OTO framework. Here is the [job description](https://jobs.careers.microsoft.com/global/en/job/1681977/Research-Software-Engineer-II). We encourage candidates with proper backgrounds to apply it. 
+We have immigrate the repo onto **[microsoft/only_train_once](https://github.com/microsoft/only_train_once).** 
 
-In the following months, technical report of HESSO optimizer associated with new optimization techniques and tutorials will be released.
+We will continuously work there with broader dev supports from both Microsoft and the open-source community to automate AI development. 
 
-This repo will be moved underneath microsoft open-source affiliation once a formal dev team is established. 
+Please kindly star, fork, and share our official repo. 
 
 ## Publications
 
