@@ -1,6 +1,8 @@
 import imp
 import re
 from . import ge
+from ..graph import Node
+
 
 class Rename():
     def __init__(self, op=None, name=None, to=None):
@@ -54,7 +56,7 @@ class Fold():
                 combo = Node(id=graph.sequence_id(),
                              op=combo_op,
                              output_shape=matches[-1].output_shape,
-                             outputs = list(outputs)) # TODO, check bugs
+                             outputs=list(outputs)) # TODO, check bugs
                 combo._caption = "/".join(filter(None, [l.caption for l in matches]))
             graph.replace(matches, combo)
 

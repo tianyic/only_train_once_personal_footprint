@@ -3,3 +3,6 @@ graphviz
 pydot
 onnx
 pygraphviz
+pytorch
+python-graphviz
+scikit-learn

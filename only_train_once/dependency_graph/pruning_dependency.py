@@ -1,11 +1,11 @@
 import os
 import sys
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
-from graph.node_group import NodeGroup
-from operation.operator import UNPRUNABLE_BASIC_OPERATORS, UNPRUNABLE_COMPOSED_OPERATORS
-from transform import is_spread_transformation, TensorTransform, SPREAD_TRANSFORM_MAP
+# currentdir = os.path.dirname(os.path.realpath(__file__))
+# parentdir = os.path.dirname(currentdir)
+# sys.path.append(parentdir)
+from only_train_once.graph.node_group import NodeGroup
+from only_train_once.operation.operator import UNPRUNABLE_BASIC_OPERATORS, UNPRUNABLE_COMPOSED_OPERATORS
+from only_train_once.transform import is_spread_transformation, TensorTransform, SPREAD_TRANSFORM_MAP
 
 def get_non_stem_nodes(graph, skip_node_ids=set()):
     non_stem_nodes = list()
