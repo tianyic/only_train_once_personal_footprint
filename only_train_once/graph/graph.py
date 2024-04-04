@@ -1,6 +1,7 @@
 import torch
 from torch import _C
 import numpy as np
+import inspect
 from packaging.version import Version
 from collections import defaultdict
 from only_train_once.operation import COMPOSED_MODULES, BASIC_MODULES, Operator, ParamOTO
@@ -417,7 +418,23 @@ class Graph:
         # Run the Pytorch graph to get a trace and generate a graph from it
         trace_graph = None
         with torch.no_grad():
-            trace_graph, _ = torch.jit._get_trace_graph(model, dummy_input)
+            if isinstance(dummy_input, dict):
+                forward_args = inspect.signature(model.forward).parameters.keys()
+                input_tensors = []
+                for argname in forward_args:
+                    if argname not in ['args', 'kwargs']:
+                        if argname in dummy_input:
+                            input_tensor = dummy_input[argname]
+                            input_tensors.append(input_tensor)
+                            # print(argname, input_tensor.shape)
+                        else:
+                            input_tensors.append(None)
+                input_tensors = tuple(input_tensors)
+            elif isinstance(dummy_input, torch.Tensor):
+                input_tensors = (dummy_input,)
+            else:
+                input_tensors = tuple(dummy_input)
+            trace_graph, _ = torch.jit._get_trace_graph(model, args=input_tensors)
             
         if not optimized_onnx:
             trace_graph = _optimize_trace_graph_no_onnx_operator(trace_graph, torch.onnx.OperatorExportTypes.ONNX)
