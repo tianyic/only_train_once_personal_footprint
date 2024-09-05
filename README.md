@@ -1,5 +1,11 @@
 # Only Train Once (OTO): Automatic One-Shot DNN Training And Compression Framework
 
+## Note: Repository Migration!
+
+We greatly thank for the support and interest from our community. The **Only-Train-Once** (**OTO**) will be migrated and maintained under Microsoft open-source site. Please check out the new home **[microsoft/only_train_once](https://github.com/microsoft/only_train_once)** and kindly help star :star:, fork, or watch. 
+
+To distinguish, the current repository will be renamed as **only_train_once_personal_footprint** to commemorate the past research and development efforts onto this series of works :blush:.   
+
 [![OTO-bage](https://img.shields.io/badge/OTO-red?logo=atom&logoColor=white)](#) [![autoML-bage](https://img.shields.io/badge/autoML-blue?logo=dependabot&logoColor=white)](#) [![DNN-training-bage](https://img.shields.io/badge/DNN-training-yellow)](#) [![DNN-compress-bage](https://img.shields.io/badge/DNN-compress-purple)](#) [![Operator-pruning-bage](https://img.shields.io/badge/Operator-pruning-green)](#) [![Operator-erasing-bage](https://img.shields.io/badge/Operator-erasing-CornflowerBlue)](#) [![build-pytorchs-bage](https://img.shields.io/badge/build-pytorch-orange)](#) [![lincese-bage](https://img.shields.io/badge/license-MIT-blue.svg)](#) [![prs-bage](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#)
 
 ![oto_overview](https://github.com/tianyic/only_train_once/assets/8930611/131bd6ba-3f94-4b46-8398-074ae311ccf0)
