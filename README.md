@@ -17,8 +17,9 @@ This repository is the (deprecated) Pytorch implementation of **Only-Train-Once*
 
 Please find our series of works and [bibtexs](https://github.com/tianyic/only_train_once?tab=readme-ov-file#citation) for kind citations. 
 
+- [HESSO: Towards Automatic Efficient and User Friendly Any Neural Network Training and Pruning](https://www.researchgate.net/publication/383984919_HESSO_Towards_Automatic_Efficient_and_User_Friendly_Any_Neural_Network_Training_and_Pruning) preprint. 
 - [OTOv3: Automatic Architecture-Agnostic Neural Network Training and Compression from Structured Pruning to Erasing Operators](https://arxiv.org/abs/2312.09411) preprint.
-- [LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery](https://arxiv.org/abs/2310.18356) preprint. 
+- [LoRAShear: Efficient Large Language Model Structured Pruning and Knowledge Recovery](https://huggingface.co/papers/2310.18356) **Hugging face #1 Paper of the day**. 
 - [An Adaptive Half-Space Projection Method for Stochastic Optimization Problems with Group Sparse Regularization](https://openreview.net/pdf?id=KBhSyBBeeO) in **TMLR 2023**.  
 - [OTOv2: Automatic, Generic, User-Friendly](https://openreview.net/pdf?id=7ynoX1ojPMt) in **ICLR 2023**.
 - [Only Train Once (OTO): A One-Shot Neural Network Training And Pruning Framework](https://papers.nips.cc/paper/2021/hash/a376033f78e144f494bfc743c0be3330-Abstract.html) in **NeurIPS 2021**.
